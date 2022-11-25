@@ -1,0 +1,12 @@
+
+        DATASET PROPERTIES
+        ------------------
+        Total number of graphs: 78
+        Total number of edges: 30143
+
+        Mean number of nodes: 171.37179487179486
+        Mean number of edges: 386.44871794871796
+        Mean number of added edges: 0.0
+
+        Generated with seed: 123
+        
