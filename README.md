@@ -26,7 +26,7 @@ source venv/bin/activate
 
 # Do some stuff...
 
-# Deactivate virtula environment
+# Deactivate virtual environment
 deactivate
 ```
 ## 💡 Idea 
