@@ -160,10 +160,47 @@ def _euclidean_dist(x:tuple, y:tuple) -> float:
     return np.sqrt((y[0] - x[0])**2 + (y[1] - x[1])**2)
 
 
-
-def stress(G: nx.Graph, pos: dict, alpha:float = 2) -> float:
+def stress(G: nx.Graph, pos: dict, alpha:float = 2) -> dict:
     """
-    Computes the stress value of a drawing.
+    Computes the stress value of a drawing for each pair of nodes.
+    The stress is defined as in the Kamada and Kawai paper[1]:
+    the sum of the square distances in the drawing and the 
+    theoretical shortest path length, pondered by a scaling factor w.
+
+    Attributes
+    ----------
+    G: nx.Graph
+    
+    pos: dict
+        Dictionary node->list of coordinates
+
+    alpha: float
+        Tuning of the scaling factor. w[i,j] := dist[i,j]^(-alpha).
+
+    Returns
+    -------
+    stress: dict
+        Stress value for each pair of nodes (idx is tuple (n1, n2), 
+        where n1 < n2)
+
+
+    [1] (T. Kamada and S. Kawai, “An Algorithm for Drawing General 
+    Undirected Graphs”, Information Processing Letters 31 (1989))
+    """
+    vals = {}
+    for n1 in G.nodes:
+        for n2 in G.nodes:
+            if len(n2) > len(n1) or (len(n2) == len(n1) and n1 < n2):
+                ideal = len(nx.algorithms.shortest_paths.generic.shortest_path(G, n1, n2))
+                p1, p2 = np.array(pos[n1]), np.array(pos[n2])
+                vals[(n1,n2)] = (ideal**(-alpha))*(_euclidean_dist(p1,p2) - ideal)**2
+
+    return vals
+
+
+def total_stress(G: nx.Graph, pos: dict, alpha:float = 2) -> float:
+    """
+    Computes the total stress value of a drawing.
     The stress is defined as in the Kamada and Kawai paper[1]:
     the sum of the square distances in the drawing and the 
     theoretical shortest path length, pondered by a scaling factor w.
