@@ -549,7 +549,7 @@ def korenTension(G: nx.Graph, n_it: int, v2: np.array, v3: np.array) -> dict:
     
     return tension
 
-def expansion_factor_norm(layout1: np.array, layout2: np.array, nnodes:int) -> float:
+def expansion_factor_norm(layout1: np.array, layout2: np.array) -> float:
     """
     Computes the normalized expansion factor.
 
@@ -561,6 +561,7 @@ def expansion_factor_norm(layout1: np.array, layout2: np.array, nnodes:int) -> f
     Returns:
     - expansion factor normalized by nnodes (float)
     """
+    nnodes = len(layout1)
     return np.sum([np.linalg.norm(layout1[i]-layout2[i]) for i in range(nnodes)])/nnodes
 
 
@@ -634,3 +635,17 @@ def distance_matrix(G: nx.Graph) -> np.array:
                 continue
             dist_mtx[row][col] = rdist[nc]
     return dist_mtx
+
+def edge_crossings_norm(diff_cross: int, nedges:int) -> float:
+    """ 
+    Computes normalized edge crossings by dividing the difference by the total amount of possible crossings.
+
+    Args:
+    - diff_cross (int) : difference in crossings between drawings
+    - nedges (int) : number of edges of the graph
+
+    Returns:
+    - normalized edge crossing difference 
+    """
+    if nedges == 1: return 0.
+    return 2*diff_cross/(nedges*(nedges-1))
