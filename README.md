@@ -34,7 +34,6 @@ Look at the effect that relaxing an edge has on graph beauty metrics (number of 
 
 ## ⏱️ To do
 - Check feature normalization functions
-- Add feature normalization functions to source code
 - Generate data frame with all features (normalized and not normalized) with column for graph type
 - Train Statistical models and trees (bucketizing), also DL both per graph type and in full
 - From last step generate conclusions and write them up
