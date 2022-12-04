@@ -577,7 +577,7 @@ def sum_neighbour_degrees_norm(G: nx.Graph, e) -> float:
     - sum of neighbour nodes normalized (float)
     """
     u,v = e
-    return (u + v)/len(G.nodes)
+    return (G.degree[u]+G.degree[v])/len(G.nodes)
 
 def max_neighbour_degrees_norm(G: nx.Graph, e) -> float:
     """
@@ -591,7 +591,7 @@ def max_neighbour_degrees_norm(G: nx.Graph, e) -> float:
     - max of neighbour nodes normalized (float)
     """
     u,v = e
-    return max(u,v)/len(G.nodes)
+    return max(G.degree[u],G.degree[v])/len(G.nodes)
 
 def gradient_kamada_kawai(layout:np.array, d: np.array) -> np.array:
     """
