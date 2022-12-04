@@ -548,3 +548,89 @@ def korenTension(G: nx.Graph, n_it: int, v2: np.array, v3: np.array) -> dict:
         tension[i] = np.linalg.norm(v2 - u[1]) + np.linalg.norm(v3 - u[2])
     
     return tension
+
+def expansion_factor_norm(layout1: np.array, layout2: np.array, nnodes:int) -> float:
+    """
+    Computes the normalized expansion factor.
+
+    Args: 
+    - layout1 (np.array) : layout of graph before relaxing the edge, nnodes*k array where k is the dimensionality of the drawing
+    - layout2 (np.array) : layout of graph after relaxation of the edge and iterations of Kamada Kawai, nnodes*k array
+    - nnodes (int) : Number of node of the graph
+
+    Returns:
+    - expansion factor normalized by nnodes (float)
+    """
+    return np.sum([np.linalg.norm(layout1[i]-layout2[i]) for i in range(nnodes)])/nnodes
+
+
+def sum_neighbour_degrees_norm(G: nx.Graph, e) -> float:
+    """
+    Computes the sum of degrees of edges connecting the edge normalized by the graph size (nnodes).
+
+    Args:
+    - G (nx.graph) : graph
+    - e (edge) : edge 
+
+    Returns:
+    - sum of neighbour nodes normalized (float)
+    """
+    return (e[0] + e[1])/len(G.nodes)
+
+def max_neighbour_degrees_norm(G: nx.Graph, e) -> float:
+    """
+    Computes the max of degrees of edges connecting the edge normalized by the graph size (nnodes).
+
+    Args:
+    - G (nx.graph) : graph
+    - e (edge) : edge 
+
+    Returns:
+    - max of neighbour nodes normalized (float)
+    """
+    return max(e[0],e[1])/len(G.nodes)
+
+def gradient_kamada_kawai(layout:np.array, d: np.array) -> np.array:
+    """
+    Computes the gradient of the Kamada Kawai function and evaluates it at the given 2D layout.
+
+    Args:
+    - layout (np.array) : layout to evaluate gradient at
+    - d (np.array) : symmetric matrix of size nnodes*nnodes with d_ij = d(i,j) ideal distance from i to j
+
+    Returns:
+    - gradient of the kamada kawai evaluated at the layout as a numpy array of the form [dx_11, dx_12, dx_21, dx_22, ...]
+    """
+
+    grad = np.array([0 for i in range(2*len(layout))], dtype=np.float64)
+    for i in range(len(layout)):
+        dx = np.sum([2*(layout[i][0]-layout[j][0])/d[i][j]*(1/d[i][j]-1/np.linalg.norm(layout[i,:]-layout[j,:])) if j!=i else 0. for j in range(len(layout))])
+        dy = np.sum([2*(layout[i][1]-layout[j][1])/d[i][j]*(1/d[i][j]-1/np.linalg.norm(layout[i,:]-layout[j,:])) if j!=i else 0. for j in range(len(layout))])
+        grad[2*i] = dx
+        grad[2*i+1] = dy
+    return grad
+
+def distance_matrix(G: nx.Graph) -> np.array:
+    """
+    Returns the distance matrix of the graph, defined by d[i][j] = shortest path length between node i and j.
+
+    Args:
+    - G (nx.graph): graph
+
+    Returns:
+    - distance matrix as a numpy array
+
+    Note: Heavily inspired by nx source code.
+    """
+    nNodes = len(G)
+    dist = dict(nx.shortest_path_length(G, weight=None))
+    dist_mtx = 1e6 * np.ones((nNodes, nNodes))
+    for row, nr in enumerate(G):
+        if nr not in dist:
+            continue
+        rdist = dist[nr]
+        for col, nc in enumerate(G):
+            if nc not in rdist:
+                continue
+            dist_mtx[row][col] = rdist[nc]
+    return dist_mtx
