@@ -649,3 +649,18 @@ def edge_crossings_norm(diff_cross: int, nedges:int) -> float:
     """
     if nedges == 1: return 0.
     return 2*diff_cross/(nedges*(nedges-1))
+    
+def nodes_dict_to_array(dict_layout) -> np.array:
+    """ 
+    Converts nodes dict to array
+
+    Args:
+    - dict_layout (dict[node,np.array]): position of nodes in drawing as dict
+
+    Returns:
+    - np.array of coordinates of graph drawing
+    """
+    arr_layout = []
+    for node in dict_layout.keys():
+        arr_layout.append(dict_layout[node])
+    return np.array(arr_layout)
