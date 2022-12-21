@@ -2,6 +2,7 @@
 GRAPH UTILS module
 Authors: Pau Escofet
          Raúl Higueras (raul.higueras@estudiantat.upc.edu)
+         Nathaniel Mitrani
 
 Set of utilities and functions to work with graphs in the
 Networkx environment.
@@ -551,7 +552,7 @@ def korenTension(G: nx.Graph, n_it: int, v2: np.array, v3: np.array) -> dict:
 
 def expansion_factor_norm(layout1: np.array, layout2: np.array) -> float:
     """
-    Computes the normalized expansion factor.
+    Computes the normalized expansion factor
 
     Args: 
     - layout1 (np.array) : layout of graph before relaxing the edge, nnodes*k array where k is the dimensionality of the drawing
@@ -567,7 +568,7 @@ def expansion_factor_norm(layout1: np.array, layout2: np.array) -> float:
 
 def sum_neighbour_degrees_norm(G: nx.Graph, e) -> float:
     """
-    Computes the sum of degrees of edges connecting the edge normalized by the graph size (nnodes).
+    Computes the sum of degrees of edges connecting the edge normalized by the graph size (nnodes)
 
     Args:
     - G (nx.graph) : graph
@@ -581,7 +582,7 @@ def sum_neighbour_degrees_norm(G: nx.Graph, e) -> float:
 
 def max_neighbour_degrees_norm(G: nx.Graph, e) -> float:
     """
-    Computes the max of degrees of edges connecting the edge normalized by the graph size (nnodes).
+    Computes the max of degrees of edges connecting the edge normalized by the graph size (nnodes)
 
     Args:
     - G (nx.graph) : graph
@@ -595,7 +596,7 @@ def max_neighbour_degrees_norm(G: nx.Graph, e) -> float:
 
 def gradient_kamada_kawai(layout:np.array, d: np.array) -> np.array:
     """
-    Computes the gradient of the Kamada Kawai function and evaluates it at the given 2D layout.
+    Computes the gradient of the Kamada Kawai function and evaluates it at the given 2D layout
 
     Args:
     - layout (np.array) : layout to evaluate gradient at
@@ -615,7 +616,7 @@ def gradient_kamada_kawai(layout:np.array, d: np.array) -> np.array:
 
 def distance_matrix(G: nx.Graph) -> np.array:
     """
-    Returns the distance matrix of the graph, defined by d[i][j] = shortest path length between node i and j.
+    Returns the distance matrix of the graph, defined by d[i][j] = shortest path length between node i and j
 
     Args:
     - G (nx.graph): graph
@@ -623,7 +624,7 @@ def distance_matrix(G: nx.Graph) -> np.array:
     Returns:
     - distance matrix as a numpy array
 
-    Note: Heavily inspired by nx source code.
+    Note: Heavily inspired by nx source code
     """
     nNodes = len(G)
     dist = dict(nx.shortest_path_length(G, weight=None))
@@ -640,7 +641,7 @@ def distance_matrix(G: nx.Graph) -> np.array:
 
 def edge_crossings_norm(diff_cross: int, nedges:int) -> float:
     """ 
-    Computes normalized edge crossings by dividing the difference by the total amount of possible crossings.
+    Computes normalized edge crossings by dividing the difference by the total amount of possible crossings
 
     Args:
     - diff_cross (int) : difference in crossings between drawings
@@ -666,3 +667,65 @@ def nodes_dict_to_array(dict_layout: dict) -> np.array:
     for node in dict_layout.keys():
         arr_layout.append(dict_layout[node])
     return np.array(arr_layout)
+
+def j_node_centrality(G:nx.Graph, layout: np.array, numIterations:int = 1000, node = None) -> np.array:
+    """
+    Returns an array of node J-centralities, computed iteratively
+
+    Args:
+    - G (nx.Graph): graph from which we wish to draw the J-centralities
+    - layout (np.array float): matrix with coordinates of each node as columns
+    - numIterations (int): number of iterations to compute centralities
+    
+    Returns:
+    - np.array of float as node J-centralities
+    """
+    nNodes = len(G.nodes)
+    idx_to_node = {idx:node for idx, node in enumerate(G.nodes)}
+    node_to_idx = {node:idx for idx, node in enumerate(G.nodes)}
+    degree = nx.degree(G)
+    L = np.ones((nNodes))
+    for it in range(numIterations):
+        order_traversal = np.random.permutation(nNodes)
+        # to avoid prioritizing nodes or paths based on sequential traversal
+        for i in order_traversal:
+            L[i] = np.sum([L[j]*np.linalg.norm(layout[i]-layout[j]) for j in range(nNodes)])/degree[idx_to_node[i]]
+        sumCentralities = np.sum(L)
+        L /= sumCentralities
+    
+    if node is not None: return nNodes*L[node_to_idx[node]]
+    return nNodes*L
+
+def max_j_node_centrality(G: nx.Graph, layout:np.array, e, numIterations:int = 1000) -> float:
+    """
+    Computes maximum of j_node_centralities of connecting nodes
+
+    Args:
+    - G (nx.Graph): graph
+    - layout (np.array): layout of the drawing of G
+    - e (edge): edge for which we which to compute max_j_node_centralities
+    - numIterations (int, optional): _description_. Defaults to 1000.
+
+    Returns:
+    - float: max of the centralities of the nodes that the edge connects
+    
+    """
+    u,v = e
+    return max(j_node_centrality(G,layout,numIterations,u),j_node_centrality(G,layout,numIterations,v))
+
+def sum_j_node_centrality(G: nx.Graph, layout:np.array, e, numIterations:int =1000) -> float:
+    """
+    Computes sum of j_node_centralities of connecting nodes
+
+    Args:
+    - G (nx.Graph): graph
+    - layout (np.array): layout of the drawing of G
+    - e (edge): edge for which we which to compute max_j_node_centralities
+    - numIterations (int, optional): _description_. Defaults to 1000.
+
+    Returns:
+    - float: sum of the centralities of the nodes that the edge connects
+    
+    """
+    u,v = e
+    return j_node_centrality(G,layout,numIterations,u)+j_node_centrality(G,layout,numIterations,v)
