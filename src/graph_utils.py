@@ -429,9 +429,10 @@ def compareGraphs(g1:nx.Graph, g2:nx.Graph, pos1:dict=None, pos2:dict=None, rmed
         print(f" Mean angular resolution: {q1[4]:.3f} - {q2[4]:.3f} ({symbol(v[4], 'g')} {v[4]:.3f})")
 
         plt.subplot(121, aspect=1)
-        nx.draw(g1, pos=pos1, node_size=20)
+        e_col = ['red' if (e in rmedges or e[::-1] in rmedges) else 'black' for e in g1.edges]
+        nx.draw(g1, pos=pos1, node_size=10, edge_color=e_col)
         plt.subplot(122, aspect=1)
-        e_col = ['grey' if (e in rmedges or e[::-1] in rmedges) else 'black' for e in g2.edges]
+        e_col = ['red' if (e in rmedges or e[::-1] in rmedges) else 'black' for e in g2.edges]
         nx.draw(g2, pos=pos2, node_size=10, edge_color=e_col)
 
     return v
