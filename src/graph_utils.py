@@ -25,16 +25,17 @@ from typing import Any, Sequence
 DRAWING FUNCTIONS
 """
 
-def prettyPos(G: nx.Graph, weight:str=None, weight_type:str='both', seed:int=None) -> dict:
+
+def prettyPos(G: nx.Graph, weight: str = None, weight_type: str = 'both', seed: int = None) -> dict:
     """ Obtain the position for spectral + spring 
-    
+
     Attributes
     ----------
     G: nx.Graph
 
     weight: str
         Name of the edge attribute to use as weight.
-    
+
     weight_type: str
         One in ['both', 'spectral', 'spring']. Tells for which of the algorithms
         the weight will be considered.
@@ -46,7 +47,7 @@ def prettyPos(G: nx.Graph, weight:str=None, weight_type:str='both', seed:int=Non
     """
     pos = None
     np.random.seed(seed)
-    
+
     if weight_type == 'spring':
         pos = nx.spectral_layout(G)
     else:
@@ -58,13 +59,14 @@ def prettyPos(G: nx.Graph, weight:str=None, weight_type:str='both', seed:int=Non
         pos = nx.spring_layout(G, pos=pos, weight=weight)
     return pos
 
+
 def prettyDraw(G: nx.Graph, measures=False, **kwargs) -> None:
     """ Draw graph using spring layout and initial position of spectral layout
-    
+
     Attributes
     ----------
     G: nx.Graph
-    
+
     measures: bool
         True to print the quality metrics of the drawing
 
@@ -76,18 +78,18 @@ def prettyDraw(G: nx.Graph, measures=False, **kwargs) -> None:
 
     if measures:
         quality_measures(G, pos, show=True)
-    
+
 
 def drawRelaxingEdges(G: nx.Graph, edges: list, measures=False, **kwargs) -> None:
     """ Draw the graph relaxing some edges. Uses spectral + spring
-    
+
     Attributes
     ----------
     G: nx.Graph
 
     edges: list
         List of edges to ignore during drawing
-    
+
     measures: bool
         True to print the quality metrics of the drawing
 
@@ -107,10 +109,11 @@ def drawRelaxingEdges(G: nx.Graph, edges: list, measures=False, **kwargs) -> Non
         quality_measures(G, pos)
 
 
-
 """
 DRAWING QUALITY MEASURES
 """
+
+
 def _same_side(pos: dict, p: Any, q: Any, a: Any, b: Any) -> bool:
     """
     Indicates whether the nodes a and b are at the same side of the
@@ -139,29 +142,32 @@ def _edge_crossing(pos: dict, e1: tuple, e2: tuple) -> bool:
     return not (_same_side(pos, a, b, c, d) or _same_side(pos, c, d, a, b))
 
 
-def _angle_segments(s1x:tuple, s1y:tuple, s2x:tuple, s2y:tuple) -> float:
+def _angle_segments(s1x: tuple, s1y: tuple, s2x: tuple, s2y: tuple) -> float:
     """Returns the angle between two segments"""
     x1, x2 = np.array(s1y) - np.array(s1x)
     y1, y2 = np.array(s2y) - np.array(s2x)
-    cos = (x1 * y1 + x2 * y2) / ( np.sqrt(x1*x1 + x2*x2) * np.sqrt(y1*y1 + y2*y2) )
+    cos = (x1 * y1 + x2 * y2) / \
+        (np.sqrt(x1*x1 + x2*x2) * np.sqrt(y1*y1 + y2*y2))
     angle = np.arccos(cos)*180/np.pi
     return min(180-angle, angle)
 
-def _angle_segments2(s1x:tuple, s1y:tuple, s2x:tuple, s2y:tuple) -> float:
+
+def _angle_segments2(s1x: tuple, s1y: tuple, s2x: tuple, s2y: tuple) -> float:
     """Returns the angle between two segments"""
     x1, x2 = np.array(s1y) - np.array(s1x)
     y1, y2 = np.array(s2y) - np.array(s2x)
-    cos = (x1 * y1 + x2 * y2) / ( np.sqrt(x1*x1 + x2*x2) * np.sqrt(y1*y1 + y2*y2) )
+    cos = (x1 * y1 + x2 * y2) / \
+        (np.sqrt(x1*x1 + x2*x2) * np.sqrt(y1*y1 + y2*y2))
     angle = np.arccos(cos)*180/np.pi
     return angle
 
 
-def _euclidean_dist(x:tuple, y:tuple) -> float:
+def _euclidean_dist(x: tuple, y: tuple) -> float:
     """Euclidean distance"""
     return np.sqrt((y[0] - x[0])**2 + (y[1] - x[1])**2)
 
 
-def stress(G: nx.Graph, pos: dict, alpha:float = 2) -> dict:
+def stress(G: nx.Graph, pos: dict, alpha: float = 2) -> dict:
     """
     Computes the stress value of a drawing for each pair of nodes.
     The stress is defined as in the Kamada and Kawai paper[1]:
@@ -171,7 +177,7 @@ def stress(G: nx.Graph, pos: dict, alpha:float = 2) -> dict:
     Attributes
     ----------
     G: nx.Graph
-    
+
     pos: dict
         Dictionary node->list of coordinates
 
@@ -192,14 +198,16 @@ def stress(G: nx.Graph, pos: dict, alpha:float = 2) -> dict:
     for n1 in G.nodes:
         for n2 in G.nodes:
             if len(n2) > len(n1) or (len(n2) == len(n1) and n1 < n2):
-                ideal = len(nx.algorithms.shortest_paths.generic.shortest_path(G, n1, n2))
+                ideal = len(
+                    nx.algorithms.shortest_paths.generic.shortest_path(G, n1, n2))
                 p1, p2 = np.array(pos[n1]), np.array(pos[n2])
-                vals[(n1,n2)] = (ideal**(-alpha))*(_euclidean_dist(p1,p2) - ideal)**2
+                vals[(n1, n2)] = (ideal**(-alpha)) * \
+                    (_euclidean_dist(p1, p2) - ideal)**2
 
     return vals
 
 
-def total_stress(G: nx.Graph, pos: dict, alpha:float = 2) -> float:
+def total_stress(G: nx.Graph, pos: dict, alpha: float = 2) -> float:
     """
     Computes the total stress value of a drawing.
     The stress is defined as in the Kamada and Kawai paper[1]:
@@ -209,7 +217,7 @@ def total_stress(G: nx.Graph, pos: dict, alpha:float = 2) -> float:
     Attributes
     ----------
     G: nx.Graph
-    
+
     pos: dict
         Dictionary node->list of coordinates
 
@@ -230,9 +238,10 @@ def total_stress(G: nx.Graph, pos: dict, alpha:float = 2) -> float:
         for n2 in G.nodes:
             if n2 >= n1:
                 break
-            ideal = len(nx.algorithms.shortest_paths.generic.shortest_path(G, n1, n2))
+            ideal = len(
+                nx.algorithms.shortest_paths.generic.shortest_path(G, n1, n2))
             p1, p2 = np.array(pos[n1]), np.array(pos[n2])
-            val += (ideal**(-alpha))*(_euclidean_dist(p1,p2) - ideal)**2
+            val += (ideal**(-alpha))*(_euclidean_dist(p1, p2) - ideal)**2
 
     return val
 
@@ -240,14 +249,14 @@ def total_stress(G: nx.Graph, pos: dict, alpha:float = 2) -> float:
 def edge_length_variance(G: nx.Graph, pos: dict) -> float:
     """Returns the variance of the edge lenghts"""
     pos = nx.drawing.layout.rescale_layout_dict(pos)
-    edge_lengths = [_euclidean_dist(pos[u], pos[v]) for u,v in G.edges]
+    edge_lengths = [_euclidean_dist(pos[u], pos[v]) for u, v in G.edges]
     return np.var(edge_lengths)
 
 
 def mean_edge_length(G: nx.Graph, pos: dict) -> float:
     """Returns the variance of the edge lenghts"""
     pos = nx.drawing.layout.rescale_layout_dict(pos)
-    edge_lengths = [_euclidean_dist(pos[u], pos[v]) for u,v in G.edges]
+    edge_lengths = [_euclidean_dist(pos[u], pos[v]) for u, v in G.edges]
     return np.mean(edge_lengths)
 
 
@@ -266,7 +275,6 @@ def num_crossings(G: nx.Graph, pos: dict) -> int:
     return n
 
 
-
 def mean_crossing_angle(G: nx.Graph, pos: dict) -> float:
     """Returns the mean angle of the crossings."""
     n = 0
@@ -278,7 +286,6 @@ def mean_crossing_angle(G: nx.Graph, pos: dict) -> float:
             n += 1
             angle += _angle_segments(e1x, e1y, e2x, e2y)
 
-            
     return angle/n if n != 0 else 0
 
 
@@ -296,7 +303,7 @@ def aspect_ratio(pos: dict) -> float:
 
 def pseudo_vertex_resolution(G: nx.Graph, pos: dict) -> float:
     """Min distance to other node averaged out for all nodes
-    
+
     Used to determine the amount of clutter and overlapping nodes.
     Note: the positions are normalized before computing the measure
     """
@@ -324,7 +331,8 @@ def mean_angular_resolution(G: nx.Graph, pos: dict) -> float:
                 if n2 < n3:
                     p11, p12 = pos[n1], pos[n2]
                     p21, p22 = pos[n1], pos[n3]
-                    min_angle = min(min_angle, _angle_segments(p11,p12,p21,p22))
+                    min_angle = min(
+                        min_angle, _angle_segments(p11, p12, p21, p22))
         total_angles += min_angle
     return total_angles/len(G.nodes)
 
@@ -332,13 +340,16 @@ def mean_angular_resolution(G: nx.Graph, pos: dict) -> float:
 def continuity2(G, pos, min_length=3, max_length=5):
     pos = nx.drawing.layout.rescale_layout_dict(pos)
     paths = dict(nx.all_pairs_shortest_path(G))
-    lenghts = {(s,t): len(paths[s][t]) for s in paths.keys() for t in paths[s].keys()}
-    node_pairs = [k for k,v in lenghts.items() if min_length <= v <= max_length]
+    lenghts = {(s, t): len(paths[s][t])
+               for s in paths.keys() for t in paths[s].keys()}
+    node_pairs = [k for k, v in lenghts.items() if min_length <=
+                  v <= max_length]
     total_val = 0
     for u, v in node_pairs:
         opt_dist = _euclidean_dist(pos[u], pos[v])
         node_pairs_path = zip(paths[u][v][:-1], paths[u][v][1:])
-        real_dist = np.sum([_euclidean_dist(pos[uu], pos[vv]) for uu, vv in node_pairs_path])
+        real_dist = np.sum([_euclidean_dist(pos[uu], pos[vv])
+                           for uu, vv in node_pairs_path])
         total_val += real_dist/opt_dist
     return total_val
 
@@ -346,14 +357,18 @@ def continuity2(G, pos, min_length=3, max_length=5):
 def continuity(G, pos, min_length=3, max_length=5):
     pos = nx.drawing.layout.rescale_layout_dict(pos)
     paths = dict(nx.all_pairs_shortest_path(G))
-    lenghts = {(s,t): len(paths[s][t]) for s in paths.keys() for t in paths[s].keys()}
-    node_pairs = [k for k,v in lenghts.items() if min_length <= v <= max_length]
+    lenghts = {(s, t): len(paths[s][t])
+               for s in paths.keys() for t in paths[s].keys()}
+    node_pairs = [k for k, v in lenghts.items() if min_length <=
+                  v <= max_length]
     total_val = 0
     for u, v in node_pairs:
-        node_trios_path = zip(paths[u][v][:-2], paths[u][v][1:-1], paths[u][v][2:])
+        node_trios_path = zip(
+            paths[u][v][:-2], paths[u][v][1:-1], paths[u][v][2:])
         mean_angle = np.mean(
-            [_angle_segments2(pos[uu], pos[vv], pos[vv], pos[ww]) for uu, vv, ww in node_trios_path]
-            )
+            [_angle_segments2(pos[uu], pos[vv], pos[vv], pos[ww])
+             for uu, vv, ww in node_trios_path]
+        )
         total_val += mean_angle
     return total_val/len(node_pairs)
 
@@ -361,21 +376,26 @@ def continuity(G, pos, min_length=3, max_length=5):
 def bendiness_ratio(G, pos, min_length=3, max_length=5):
     pos = nx.drawing.layout.rescale_layout_dict(pos)
     paths = dict(nx.all_pairs_shortest_path(G))
-    lenghts = {(s,t): len(paths[s][t]) for s in paths.keys() for t in paths[s].keys()}
-    node_pairs = [k for k,v in lenghts.items() if min_length <= v <= max_length]
+    lenghts = {(s, t): len(paths[s][t])
+               for s in paths.keys() for t in paths[s].keys()}
+    node_pairs = [k for k, v in lenghts.items() if min_length <=
+                  v <= max_length]
     total_val = 0
     for u, v in node_pairs:
-        node_trios_path = zip(paths[u][v][:-2], paths[u][v][1:-1], paths[u][v][2:])
+        node_trios_path = zip(
+            paths[u][v][:-2], paths[u][v][1:-1], paths[u][v][2:])
         node_pairs_path = zip(paths[u][v][:-1], paths[u][v][1:])
         sum_angle = np.sum(
-            [_angle_segments2(pos[uu], pos[vv], pos[vv], pos[ww]) for uu, vv, ww in node_trios_path]
-            )
-        sum_dist = np.sum([_euclidean_dist(pos[uu], pos[vv]) for uu, vv in node_pairs_path])
+            [_angle_segments2(pos[uu], pos[vv], pos[vv], pos[ww])
+             for uu, vv, ww in node_trios_path]
+        )
+        sum_dist = np.sum([_euclidean_dist(pos[uu], pos[vv])
+                          for uu, vv in node_pairs_path])
         total_val += sum_angle/sum_dist
     return total_val/len(node_pairs)
 
 
-def quality_measures(G: nx.Graph, pos: dict, show: bool=False) -> list:
+def quality_measures(G: nx.Graph, pos: dict, show: bool = False) -> list:
     """
     Returns a table with the quality measures.
     If show is True, it also prints the values. Useful for notebooks.
@@ -404,9 +424,7 @@ def quality_measures(G: nx.Graph, pos: dict, show: bool=False) -> list:
 #     return num_crossings(G, pos), aspect_ratio(pos), mean_crossing_angle(G, pos), pseudo_vertex_resolution(G, pos), mean_angular_resolution(G, pos), mean_edge_length(G, pos), edge_length_variance(G, pos)
 
 
-
-
-def compareGraphs(g1:nx.Graph, g2:nx.Graph, pos1:dict=None, pos2:dict=None, rmedges:list=[], show:bool=True) -> list:
+def compareGraphs(g1: nx.Graph, g2: nx.Graph, pos1: dict = None, pos2: dict = None, rmedges: list = [], show: bool = True) -> list:
     """Compares the metrics between 2 graphs and their drawings"""
     def symbol(val: float, desired_comp: str):
         if desired_comp == 'g':
@@ -421,18 +439,25 @@ def compareGraphs(g1:nx.Graph, g2:nx.Graph, pos1:dict=None, pos2:dict=None, rmed
     q2 = quality_measures(g2, pos2, show=False)
     v = np.array(q2) - np.array(q1)
     if show:
-        #print(f"           Edges removed: {len(rmedges)} ({len(rmedges)/len(g.edges)*100:.2f}%)")
-        print(f"           Num crossings: {q1[0]} - {q2[0]} ({symbol(v[0], 'l')} {v[0]})")
-        print(f"            Aspect ratio: {q1[1]:.3f} - {q2[1]:.3f} ({symbol(v[1], 'g')} {v[1]:.3f})")
-        print(f"     Mean crossing angle: {q1[2]:.3f} - {q2[2]:.3f} ({symbol(v[2], 'g')} {v[2]:.3f})")
-        print(f"Pseudo vertex resolution: {q1[3]:.3f} - {q2[3]:.3f} ({symbol(v[3], 'g')} {v[3]:.3f})")
-        print(f" Mean angular resolution: {q1[4]:.3f} - {q2[4]:.3f} ({symbol(v[4], 'g')} {v[4]:.3f})")
+        # print(f"           Edges removed: {len(rmedges)} ({len(rmedges)/len(g.edges)*100:.2f}%)")
+        print(
+            f"           Num crossings: {q1[0]} - {q2[0]} ({symbol(v[0], 'l')} {v[0]})")
+        print(
+            f"            Aspect ratio: {q1[1]:.3f} - {q2[1]:.3f} ({symbol(v[1], 'g')} {v[1]:.3f})")
+        print(
+            f"     Mean crossing angle: {q1[2]:.3f} - {q2[2]:.3f} ({symbol(v[2], 'g')} {v[2]:.3f})")
+        print(
+            f"Pseudo vertex resolution: {q1[3]:.3f} - {q2[3]:.3f} ({symbol(v[3], 'g')} {v[3]:.3f})")
+        print(
+            f" Mean angular resolution: {q1[4]:.3f} - {q2[4]:.3f} ({symbol(v[4], 'g')} {v[4]:.3f})")
 
         plt.subplot(121, aspect=1)
-        e_col = ['red' if (e in rmedges or e[::-1] in rmedges) else 'black' for e in g1.edges]
+        e_col = ['red' if (e in rmedges or e[::-1] in rmedges)
+                 else 'black' for e in g1.edges]
         nx.draw(g1, pos=pos1, node_size=10, edge_color=e_col)
         plt.subplot(122, aspect=1)
-        e_col = ['red' if (e in rmedges or e[::-1] in rmedges) else 'black' for e in g2.edges]
+        e_col = ['red' if (e in rmedges or e[::-1] in rmedges)
+                 else 'black' for e in g2.edges]
         nx.draw(g2, pos=pos2, node_size=10, edge_color=e_col)
 
     return v
@@ -441,6 +466,8 @@ def compareGraphs(g1:nx.Graph, g2:nx.Graph, pos1:dict=None, pos2:dict=None, rmed
 """
 EXTRA FUNCTIONS
 """
+
+
 def addRandomEdges(graph: nx.Graph, nEdges: int) -> tuple:
     """ Adds random edges to a given graph """
     nodes = list(graph.nodes)
@@ -459,31 +486,31 @@ def addRandomEdges(graph: nx.Graph, nEdges: int) -> tuple:
     return g, edges
 
 
-
-
 """
 KOREN
 """
+
 
 def _normalize(v: np.array):
     norm = np.linalg.norm(v)
     norm = norm if norm != 0 else np.finfo(v.dtype).eps
     return v/norm
 
-def _korenMatrix(G: nx.graph, weight = None) -> np.array:
+
+def _korenMatrix(G: nx.graph, weight=None) -> np.array:
     A = nx.linalg.graphmatrix.adjacency_matrix(G).toarray()
     if weight is not None:
-        for (u,v),w in weight.items():
+        for (u, v), w in weight.items():
             A[u][v] = A[v][u] = w
     n = A.shape[0]
-    D = np.diag(np.array([v for k,v in G.degree()]))
-    D_inv = np.diag(np.array([1/v for k,v in G.degree()]))
+    D = np.diag(np.array([v for k, v in G.degree()]))
+    D_inv = np.diag(np.array([1/v for k, v in G.degree()]))
     I = np.identity(n)
 
     return 0.5 * (I + np.matmul(D_inv, A)), D
 
 
-def korenAlg(G: nx.Graph, eps = 1e-12, maxit = 1e5, ndim = 2, weight = None, debug: bool = False) -> np.array:
+def korenAlg(G: nx.Graph, eps=1e-12, maxit=1e5, ndim=2, weight=None, debug: bool = False) -> np.array:
     """
     Runs the Koren algorithm for finding the spectral drawing. Returns a np.array.
     """
@@ -493,17 +520,16 @@ def korenAlg(G: nx.Graph, eps = 1e-12, maxit = 1e5, ndim = 2, weight = None, deb
     u = [None for i in range(ndim+1)]
     u[0] = np.ones(n)/n
 
-
     for k in range(1, ndim+1):
         v = _normalize(np.random.rand(n))
         it = 0
         while True:
             u[k] = v
             for l in range(k):
-                num = np.matmul(np.matmul(u[k].T,D), u[l])
-                den = np.matmul(np.matmul(u[l].T,D), u[l])
+                num = np.matmul(np.matmul(u[k].T, D), u[l])
+                den = np.matmul(np.matmul(u[l].T, D), u[l])
                 u[k] = u[k] - (num/den)*u[l]
-            
+
             v = _normalize(np.matmul(M, u[k]))
             it += 1
 
@@ -511,8 +537,9 @@ def korenAlg(G: nx.Graph, eps = 1e-12, maxit = 1e5, ndim = 2, weight = None, deb
                 break
         if debug:
             print(f"Eigenvector {k} computed in {it} iterations")
-    
+
     return u
+
 
 def korenTension(G: nx.Graph, n_it: int, v2: np.array, v3: np.array) -> dict:
     """
@@ -523,7 +550,7 @@ def korenTension(G: nx.Graph, n_it: int, v2: np.array, v3: np.array) -> dict:
         4. Repeating the same process for each edge
 
     Returns a value for each edge. 
-    """   
+    """
     n = len(G.nodes)
 
     tension = [0 for _ in G.edges]
@@ -542,14 +569,15 @@ def korenTension(G: nx.Graph, n_it: int, v2: np.array, v3: np.array) -> dict:
             for _ in range(n_it):
                 u[k] = v
                 for l in range(k):
-                    num = np.matmul(np.matmul(u[k].T,D), u[l])
-                    den = np.matmul(np.matmul(u[l].T,D), u[l])
+                    num = np.matmul(np.matmul(u[k].T, D), u[l])
+                    den = np.matmul(np.matmul(u[l].T, D), u[l])
                     u[k] = u[k] - (num/den)*u[l]
-                
+
                 v = _normalize(np.matmul(M, u[k]))
         tension[i] = np.linalg.norm(v2 - u[1]) + np.linalg.norm(v3 - u[2])
-    
+
     return tension
+
 
 def expansion_factor_norm(layout1: np.array, layout2: np.array) -> float:
     """
@@ -578,8 +606,9 @@ def sum_neighbour_degrees_norm(G: nx.Graph, e) -> float:
     Returns:
     - sum of neighbour nodes normalized (float)
     """
-    u,v = e
+    u, v = e
     return (G.degree[u]+G.degree[v])/len(G.nodes)
+
 
 def max_neighbour_degrees_norm(G: nx.Graph, e) -> float:
     """
@@ -592,10 +621,11 @@ def max_neighbour_degrees_norm(G: nx.Graph, e) -> float:
     Returns:
     - max of neighbour nodes normalized (float)
     """
-    u,v = e
-    return max(G.degree[u],G.degree[v])/len(G.nodes)
+    u, v = e
+    return max(G.degree[u], G.degree[v])/len(G.nodes)
 
-def gradient_kamada_kawai(layout:np.array, d: np.array) -> np.array:
+
+def gradient_kamada_kawai(layout: np.array, d: np.array) -> np.array:
     """
     Computes the gradient of the Kamada Kawai function and evaluates it at the given 2D layout
 
@@ -609,11 +639,14 @@ def gradient_kamada_kawai(layout:np.array, d: np.array) -> np.array:
 
     grad = np.array([0 for i in range(2*len(layout))], dtype=np.float64)
     for i in range(len(layout)):
-        dx = np.sum([2*(layout[i][0]-layout[j][0])/d[i][j]*(1/d[i][j]-1/np.linalg.norm(layout[i,:]-layout[j,:])) if j!=i else 0. for j in range(len(layout))])
-        dy = np.sum([2*(layout[i][1]-layout[j][1])/d[i][j]*(1/d[i][j]-1/np.linalg.norm(layout[i,:]-layout[j,:])) if j!=i else 0. for j in range(len(layout))])
+        dx = np.sum([2*(layout[i][0]-layout[j][0])/d[i][j]*(1/d[i][j]-1/np.linalg.norm(
+            layout[i, :]-layout[j, :])) if j != i else 0. for j in range(len(layout))])
+        dy = np.sum([2*(layout[i][1]-layout[j][1])/d[i][j]*(1/d[i][j]-1/np.linalg.norm(
+            layout[i, :]-layout[j, :])) if j != i else 0. for j in range(len(layout))])
         grad[2*i] = dx
         grad[2*i+1] = dy
     return grad
+
 
 def distance_matrix(G: nx.Graph) -> np.array:
     """
@@ -640,7 +673,8 @@ def distance_matrix(G: nx.Graph) -> np.array:
             dist_mtx[row][col] = rdist[nc]
     return dist_mtx
 
-def edge_crossings_norm(diff_cross: int, nedges:int) -> float:
+
+def edge_crossings_norm(diff_cross: int, nedges: int) -> float:
     """ 
     Computes normalized edge crossings by dividing the difference by the total amount of possible crossings
 
@@ -651,9 +685,11 @@ def edge_crossings_norm(diff_cross: int, nedges:int) -> float:
     Returns:
     - normalized edge crossing difference 
     """
-    if nedges == 1: return 0.
+    if nedges == 1:
+        return 0.
     return 2*diff_cross/(nedges*(nedges-1))
-    
+
+
 def nodes_dict_to_array(dict_layout: dict) -> np.array:
     """ 
     Converts nodes dict to array
@@ -669,7 +705,8 @@ def nodes_dict_to_array(dict_layout: dict) -> np.array:
         arr_layout.append(dict_layout[node])
     return np.array(arr_layout)
 
-def j_node_centrality(G:nx.Graph, layout: np.array, numIterations:int = 1000, node = None) -> np.array:
+
+def j_node_centrality(G: nx.Graph, layout: np.array, numIterations: int = 1000, node=None) -> np.array:
     """
     Returns an array of node J-centralities, computed iteratively
 
@@ -677,27 +714,30 @@ def j_node_centrality(G:nx.Graph, layout: np.array, numIterations:int = 1000, no
     - G (nx.Graph): graph from which we wish to draw the J-centralities
     - layout (np.array float): matrix with coordinates of each node as columns
     - numIterations (int): number of iterations to compute centralities
-    
+
     Returns:
     - np.array of float as node J-centralities
     """
     nNodes = len(G.nodes)
-    idx_to_node = {idx:node for idx, node in enumerate(G.nodes)}
-    node_to_idx = {node:idx for idx, node in enumerate(G.nodes)}
+    idx_to_node = {idx: node for idx, node in enumerate(G.nodes)}
+    node_to_idx = {node: idx for idx, node in enumerate(G.nodes)}
     degree = nx.degree(G)
     L = np.ones((nNodes))
     for it in range(numIterations):
         order_traversal = np.random.permutation(nNodes)
         # to avoid prioritizing nodes or paths based on sequential traversal
         for i in order_traversal:
-            L[i] = np.sum([L[j]*np.linalg.norm(layout[i]-layout[j]) for j in range(nNodes)])/degree[idx_to_node[i]]
+            L[i] = np.sum([L[j]*np.linalg.norm(layout[i]-layout[j])
+                          for j in range(nNodes)])/degree[idx_to_node[i]]
         sumCentralities = np.sum(L)
         L /= sumCentralities
-    
-    if node is not None: return nNodes*L[node_to_idx[node]]
+
+    if node is not None:
+        return nNodes*L[node_to_idx[node]]
     return nNodes*L
 
-def max_j_node_centrality(G: nx.Graph, layout:np.array, e, numIterations:int = 1000) -> float:
+
+def max_j_node_centrality(G: nx.Graph, layout: np.array, e, numIterations: int = 1000) -> float:
     """
     Computes maximum of j_node_centralities of connecting nodes
 
@@ -709,12 +749,13 @@ def max_j_node_centrality(G: nx.Graph, layout:np.array, e, numIterations:int = 1
 
     Returns:
     - float: max of the centralities of the nodes that the edge connects
-    
-    """
-    u,v = e
-    return max(j_node_centrality(G,layout,numIterations,u),j_node_centrality(G,layout,numIterations,v))
 
-def sum_j_node_centrality(G: nx.Graph, layout:np.array, e, numIterations:int =1000) -> float:
+    """
+    u, v = e
+    return max(j_node_centrality(G, layout, numIterations, u), j_node_centrality(G, layout, numIterations, v))
+
+
+def sum_j_node_centrality(G: nx.Graph, layout: np.array, e, numIterations: int = 1000) -> float:
     """
     Computes sum of j_node_centralities of connecting nodes
 
@@ -726,7 +767,60 @@ def sum_j_node_centrality(G: nx.Graph, layout:np.array, e, numIterations:int =10
 
     Returns:
     - float: sum of the centralities of the nodes that the edge connects
-    
+
     """
-    u,v = e
-    return j_node_centrality(G,layout,numIterations,u)+j_node_centrality(G,layout,numIterations,v)
+    u, v = e
+    return j_node_centrality(G, layout, numIterations, u)+j_node_centrality(G, layout, numIterations, v)
+
+
+def graph_entropy_norm(G: nx.Graph) -> float:
+    """
+    Computes normalized entropy of a graph where nodes are weighted inversely by their degree
+
+    Args:
+    - G (nx.Graph): graph
+
+    Returns:
+    - float: graph entropy
+    """
+    nNodes = len(G.nodes)
+    nEdges = len(G.edges)
+    degree = nx.degree(G)
+    return -np.sum([degree[node]/(2*nEdges)*np.log(degree[node]/(2*nEdges)) for node in G.nodes])/np.log(nNodes)
+
+
+def electro_forces_in_neighbourhood(G: nx.Graph, n1: int, layout: np.array, radius: float) -> float:
+    """Returns the sum of electro forces in the neighbourhood of a node. CAN BE OPTIMIZED.
+    Args:
+        G (nx.Graph): Graph to be analyzed.
+        node (int): Node to be analyzed.
+        layout (np.array): Layout of the graph.
+        radius (float): Radius of the neighbourhood.
+    Returns:
+        np.array: Sum of electro forces in the neighbourhood of a node.
+    """
+    force = np.zeros(2)
+    m1 = 1 + np.count_nonzero(G.nodes[n1])
+    for n2 in G.nodes():
+        if n1 == n2:
+            continue
+        d = np.linalg.norm(layout[n1]-layout[n2])
+        if d <= radius:
+            m2 = 1 + np.count_nonzero(G.nodes[n2])
+            force += m1*m2*(layout[n1]-layout[n2]) / d**2
+    return force
+
+
+def cos_force_diff_in_neighbourhood(force_before: np.array, force_after: np.array) -> float:
+    """Returns the cosine of the angle between two forces.
+    Args:
+        force_before (np.array): Force before relaxing.
+        force_after (np.array): Force after relaxing.
+    Returns:
+        float: cosine of angle between two forces.
+    """
+
+    epsilon = 1e-6
+    if np.linalg.norm(force_before) < epsilon or np.linalg.norm(force_after) < epsilon:
+        return 0
+    return np.dot(force_before, force_after)/(np.linalg.norm(force_before)*np.linalg.norm(force_after))
