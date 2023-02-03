@@ -1,21 +1,22 @@
 # Notebook to generate data and save it in filename specified by input argument.
-
 from src.graph_utils import max_j_node_centrality, sum_j_node_centrality, j_node_centrality, graph_entropy_norm, electro_forces_in_neighbourhood, cos_force_diff_in_neighbourhood
 from src.graph_utils import gradient_kamada_kawai, max_neighbour_degrees_norm, sum_neighbour_degrees_norm, expansion_factor_norm, edge_crossings_norm
 from src.graph_utils import stress, total_stress, num_crossings, mean_edge_length, nodes_dict_to_array, distance_matrix
 from src.graph_parser import parseGraphmlFile
 from src.graph_dataset import GraphDataset
+from fa.forceatlas2 import ForceAtlas2 as fa2
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import pandas as pd
-import glob
-import os
 import sys
+import os
+
 module_path = os.path.abspath(os.path.join('..'))
 if module_path not in sys.path:
     sys.path.append(module_path)
+
 
 # Generate Dataframe
 n = 0
@@ -29,15 +30,17 @@ def read_list_of_graphs(dir_name, ext):
     return list_graphs
 
 
-def generate_df(list_graphs, n, m, draw_f, filename: str = 'data.csv'):
-    """Generates a dataframe with the features specified in the .
-    """
+def draw_fa2(g): return fa2.forceatlas2_networkx_layout(
+    g, pos=nx.spectral_layout(g), iterations=100)
 
 
-def draw_f(g): return nx.kamada_kawai_layout(g, pos=nx.spectral_layout(g))
+def draw_kk(g): return nx.kamada_kawai_layout(g)
 
 
-def generate_data_from_list(list_graphs: list, bench: str):
+algo_dict = {'fa2': draw_fa2, 'kk': draw_kk}
+
+
+def generate_data_from_list(list_graphs: list, bench: str, list_features: list, algo_name: str):
     """
     Generates a list of rows for a dataframe from the graphs in list_graphs.
 
@@ -51,8 +54,8 @@ def generate_data_from_list(list_graphs: list, bench: str):
     data = []
     for idx_graph, graph in tqdm(list(enumerate(list_graphs[n:m]))):
 
-        #  Run Spectral +  Kamada-Kawai
-        pos0 = draw_f(graph)
+        #  Run Spectral +  algorithm chosen
+        pos0 = algo_dict[algo_name](graph, pos=nx.spectral_layout(graph))
 
         #  Compute general graph attributes
         eb = nx.edge_betweenness(graph)     # edge betweenness
@@ -81,7 +84,7 @@ def generate_data_from_list(list_graphs: list, bench: str):
             # New position removing edge
             graph_copy = graph.copy()
             graph_copy.remove_edges_from([e])
-            pos1 = nx.kamada_kawai_layout(graph_copy, pos=pos0)
+            pos1 = algo_dict[algo_name](graph_copy, pos=pos0)
             pos1_arr = nodes_dict_to_array(pos1)
 
             cross1 = num_crossings(graph, pos1)
@@ -112,14 +115,22 @@ def generate_data_from_list(list_graphs: list, bench: str):
             force_after = force_after_1 + force_after_2
             cos_force_diff = cos_force_diff_in_neighbourhood(
                 force_before, force_after)
-            row = [idx_graph, idx_edge, nnodes, nedges, eb[e], st[e], max_deg, min_deg, e in bridges,
-                   total_stress0 - total_stress1, cross0 - cross1, edgel0 - edgel1,
-                   bench, exp_factor_norm, edge_cross_norm, sum_neighbour_deg_norm, max_neighbour_deg_norm, max_jnc, sum_jnc, graph_copy_entropy-graph_entropy, cos_force_diff, force_before-force_after]
+            feature_to_var = {'graph_id': idx_graph, 'edge_id': idx_edge, 'num_nodes': nnodes, 'num_edges': nedges, 'edge_betweenness': eb[e], 'stress': st[e], 'max_deg': max_deg, 'min_deg': min_deg, 'is_bridge': e in bridges,
+                              'diff_stress': total_stress0 - total_stress1, 'diff_cross': cross0 - cross1, 'diff_edglength': edgel0 - edgel1,
+                              'benchmark': bench, 'exp_factor_norm': exp_factor_norm, 'edge_cross_norm': edge_cross_norm, 'sum_neighbour_deg_norm': sum_neighbour_deg_norm, 'max_neighbour_deg_norm': max_neighbour_deg_norm, 'max_jnc': max_jnc, 'sum_jnc': sum_jnc, 'diff_graph_entropy_norm': graph_copy_entropy-graph_entropy, 'cos_force_diff': cos_force_diff, 'diff_force': force_before-force_after}
+            row = []
+            for feature in list_features:
+                if feature in feature_to_var.keys():
+                    row.append(feature_to_var[feature])
+
+            # row = [idx_graph, idx_edge, nnodes, nedges, eb[e], st[e], max_deg, min_deg, e in bridges,
+            #       total_stress0 - total_stress1, cross0 - cross1, edgel0 - edgel1,
+            #       bench, exp_factor_norm, edge_cross_norm, sum_neighbour_deg_norm, max_neighbour_deg_norm, max_jnc, sum_jnc, graph_copy_entropy-graph_entropy, cos_force_diff, force_before-force_after]
     data.append(row)
     return data
 
 
-def generate_df():
+def generate_df(list_features: list, draw_f):
     """
     Generates a dataframe with the features specified in the paper.
 
@@ -129,9 +140,11 @@ def generate_df():
     for bench in benchmarks:
         list_graphs = read_list_of_graphs(f'../data/{bench}/', 'graphml')
         data = []
-        data.extend(generate_data_from_list(list_graphs, bench))
-        cols = ['graph_id', 'edge_id', 'num_nodes', 'num_edges', 'edge_betweenness', 'stress', 'max_deg', 'min_deg', 'is_bridge', 'diff_stress', 'diff_cross', 'diff_edgelength', 'benchmark',
-                'exp_factor_norm', 'edge_cross_norm', 'sum_neighbour_deg_norm', 'max_neighbour_deg_norm', 'max_jnc', 'sum_jnc', 'diff_graph_entropy_norm', 'cos_force_diff', 'diff_force']
+        data.extend(generate_data_from_list(
+            list_graphs, bench, list_features, draw_f))
+        # cols = ['graph_id', 'edge_id', 'num_nodes', 'num_edges', 'edge_betweenness', 'stress', 'max_deg', 'min_deg', 'is_bridge', 'diff_stress', 'diff_cross', 'diff_edgelength', 'benchmark',
+        #        'exp_factor_norm', 'edge_cross_norm', 'sum_neighbour_deg_norm', 'max_neighbour_deg_norm', 'max_jnc', 'sum_jnc', 'diff_graph_entropy_norm', 'cos_force_diff', 'diff_force']
+        cols = list_features
         df = pd.DataFrame(data, columns=cols)
     return df
 
@@ -159,8 +172,15 @@ def plot_statistics(df):
     plt.show()
 
 
-def main():
-    df = generate_df()
-    filename = input('Enter filename: (without .csv)')
+all_features = ['graph_id', 'edge_id', 'num_nodes', 'num_edges', 'edge_betweenness', 'stress', 'max_deg', 'min_deg', 'is_bridge',
+                'diff_stress', 'diff_cross', 'diff_edglength',
+                'benchmark', 'exp_factor_norm', 'edge_cross_norm', 'sum_neighbour_deg_norm', 'max_neighbour_deg_norm', 'max_jnc', 'sum_jnc', 'diff_graph_entropy_norm', 'cos_force_diff', 'diff_force']
+
+
+def mainDataGen():
+    list_features = all_features
+    alg_name = 'kk'
+    df = generate_df(list_features, alg_name)
+    filename = 'graph_train_experiment_'+alg_name
     df.to_csv('../data/'+filename+'.csv', index=False)
-    plot_statistics(df)
+    # plot_statistics(df)

@@ -22,7 +22,7 @@ params = {
 }
 
 
-def preprocess_data(filename: str):
+def preprocess_data(df2: pd.DataFrame):
     """Preprocesses data for XGBoost.
 
     Args:
@@ -32,7 +32,6 @@ def preprocess_data(filename: str):
         Xn (np.array): Array of features.
         yn (np.array): Array of labels.
     """
-    df2 = pd.read_csv('../data/'+filename)
     df2['is_bridge'] = df2['is_bridge'].astype(float)
     yn = (df2['edge_cross_norm'] > 0).to_numpy(dtype=int)
     df2 = df2.drop(labels=['edge_cross_norm', 'edge_id', 'graph_id', 'num_nodes', 'num_edges',
@@ -42,7 +41,7 @@ def preprocess_data(filename: str):
     return Xn, yn
 
 
-def perform_grid_search(xgb: XGBClassifier, params_grid: dict, X_train: np.array, y_train: np.array, njobs: int = 4, folds: int = 3):
+def perform_grid_search(xgb: XGBClassifier, X_train: np.array, y_train: np.array, params_grid: dict = params, njobs: int = 4, folds: int = 3):
     """
     Performs grid search on XGBClassifier
 
@@ -64,7 +63,7 @@ def perform_grid_search(xgb: XGBClassifier, params_grid: dict, X_train: np.array
     return grid
 
 
-def make_predictions_grid_search(grid: GridSearchCV, X_test: np.array, T: float = 0.5):
+def make_predictions(grid: GridSearchCV or XGBClassifier, X_test: np.array, T: float = 0.5):
     """
     Makes predictions on test set with threshold T
 
@@ -91,15 +90,13 @@ def evaluate_accuracy(yn_test: np.array, yn_res: np.array):
         yn_res: predictions
 
     Returns:
-        None
+        [f1_score,accuracy]
     """
     pos = np.sum([1 if y == 1 else 0 for y in yn_test])
     f1 = f1_score(yn_test, yn_res)
-    print(f1)
-    print('Amount of better:', pos)
-    print('Amount of neutral or worse:', len(yn_test)-pos)
-    print('Accuracy in test:', (sum(
-        [1 if yn_test[i] == yn_res[i] else 0 for i in range(len(yn_res))]))/len(yn_test))
+    acc = (sum([1 if yn_test[i] == yn_res[i]
+           else 0 for i in range(len(yn_res))]))/len(yn_test)
+    return [f1, acc]
 
 
 def plot_precision_recall_with_threshold(yn_test: np.array, yn_res: np.array):
@@ -127,14 +124,15 @@ def plot_precision_recall_with_threshold(yn_test: np.array, yn_res: np.array):
     plt.show()
 
 
-def main():
+def mainXGB():
     """Main function."""
-    Xn, yn = preprocess_data('graph_train_2.csv')
+    df = pd.read_csv('graph_train_2.csv')
+    Xn, yn = preprocess_data(df)
     Xn_train, Xn_test, yn_train, yn_test = train_test_split(
         Xn, yn, shuffle=True)
     xgb = XGBClassifier(learning_rate=0.02, n_estimators=600,
                         objective='binary:logistic', silent=True, nthread=1)
-    grid = perform_grid_search(params, Xn_train, yn_train, xgb=xgb)
-    yn_res = make_predictions_grid_search(grid, Xn_test)
+    grid = perform_grid_search(Xn_train, yn_train, xgb=xgb)
+    yn_res = make_predictions(grid, Xn_test)
     evaluate_accuracy(yn_test, yn_res)
-    plot_precision_recall_with_threshold(yn_test, yn_res)
+    # plot_precision_recall_with_threshold(yn_test, yn_res)
