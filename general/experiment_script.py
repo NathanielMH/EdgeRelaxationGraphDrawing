@@ -1,5 +1,6 @@
 import os
 import sys
+import click
 
 module_path = os.path.abspath(os.path.join('..'))
 if module_path not in sys.path:
@@ -17,11 +18,15 @@ from xgboost import XGBClassifier
 
 
 
-
+@click.command()
+@click.option('-r', '--res', 'results_file', type=click.Path(writable=True), prompt='Saving results in', default='results.txt', help='Path to save results.')
+@click.option('-i', '--ignore_feat', 'unwanted_features', help='Features to ignore.', type=str, multiple=True)
+@click.option('-a', '--alg', 'algo_name', type=click.Choice(['kk', 'fa2'], case_sensitive=False), help="Drawing algorithm to use")
 def perform_experiment(results_file: str, unwanted_features: list, algo_name: str):
+    """Runs the experiments of Edge Relaxation Graph Drawing."""
 
     # Select dataframe that contains that was generated with the algorithm I chose
-    df = pd.read_csv('../data/graph_train_experiment_'+algo_name+'.csv')
+    df = pd.read_csv(f'../data/graph_train_experiment_{algo_name}.csv')
 
     # Select features I want to use in the experiment from the dataframe, drop the others
     df.drop([col for col in df.columns if col in unwanted_features],
@@ -37,11 +42,13 @@ def perform_experiment(results_file: str, unwanted_features: list, algo_name: st
     # Evaluate the model and save the results in results_file
     y_res = make_predictions(xgb, Xn_test)
     f1, acc = evaluate_accuracy(yn_test, y_res)
-    with open('/../data/'+results_file, 'a') as f:
-        f.write('Algorithm: '+algo_name + '\n')
-        f.write('Unwanted features: ' + str(unwanted_features) + '\n')
-        f.write('F1 score: ' + str(f1) + '\n')
-        f.write('Accuracy: ' + str(acc) + '\n')
-        f.write('----------------------------------------\n')
+    with open(results_file, 'w') as f:
+        f.write(f'Algorithm: {algo_name} \n')
+        f.write(f'Unwanted features: {unwanted_features} \n')
+        f.write(f'F1 score: {f1} \n')
+        f.write(f'Accuracy: {acc} \n')
+        f.write(f'----------------------------------------\n')
 
-perform_experiment('results_experiment_fa2.txt', [], 'fa2')
+#perform_experiment('results_experiment_fa2.txt', [], 'fa2')
+if __name__ == '__main__':
+    perform_experiment()
