@@ -35,7 +35,7 @@ def preprocess_data(df2: pd.DataFrame):
     df2['is_bridge'] = df2['is_bridge'].astype(float)
     yn = (df2['edge_cross_norm'] > 0).to_numpy(dtype=int)
     df2 = df2.drop(labels=['edge_cross_norm', 'edge_id', 'graph_id', 'num_nodes', 'num_edges',
-                           'benchmark', 'max_deg', 'min_deg', 'Unnamed: 0', 'diff_cross', 'is_bridge'], axis=1)
+                           'benchmark', 'max_deg', 'min_deg', 'diff_cross', 'is_bridge','diff_force'], axis=1)
 
     Xn = df2.to_numpy(dtype=float)
     return Xn, yn
@@ -75,7 +75,10 @@ def make_predictions(grid: GridSearchCV or XGBClassifier, X_test: np.array, T: f
     Returns:
         None
     """
-    y_pred = grid.best_estimator_.predict_proba(X_test)
+    if isinstance(grid, GridSearchCV):
+        y_pred = grid.best_estimator_.predict_proba(X_test)
+    else:
+        y_pred = grid.predict_proba(X_test)
     y_pred = [1 if y[1] > T else 0 for y in y_pred]
 
     return y_pred
@@ -126,13 +129,18 @@ def plot_precision_recall_with_threshold(yn_test: np.array, yn_res: np.array):
 
 def mainXGB():
     """Main function."""
-    df = pd.read_csv('graph_train_2.csv')
+    df = pd.read_csv('graph_train_experiment_kk.csv')
     Xn, yn = preprocess_data(df)
     Xn_train, Xn_test, yn_train, yn_test = train_test_split(
         Xn, yn, shuffle=True)
     xgb = XGBClassifier(learning_rate=0.02, n_estimators=600,
                         objective='binary:logistic', silent=True, nthread=1)
-    grid = perform_grid_search(Xn_train, yn_train, xgb=xgb)
-    yn_res = make_predictions(grid, Xn_test)
+    #grid = perform_grid_search(Xn_train, yn_train, xgb=xgb)
+    xgb.fit(Xn_train, yn_train)
+    yn_res = make_predictions(xgb, Xn_test)
     evaluate_accuracy(yn_test, yn_res)
     # plot_precision_recall_with_threshold(yn_test, yn_res)
+
+if __name__ == "__main__":
+   # stuff only to run when not called via 'import' here
+   mainXGB()

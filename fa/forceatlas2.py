@@ -25,7 +25,7 @@ import numpy
 import scipy
 from tqdm import tqdm
 
-import fa2util
+import fa.fa2util as fa2util
 
 
 class Timer:

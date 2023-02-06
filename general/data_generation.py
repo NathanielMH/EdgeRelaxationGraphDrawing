@@ -11,7 +11,7 @@ from src.graph_utils import gradient_kamada_kawai, max_neighbour_degrees_norm, s
 from src.graph_utils import stress, total_stress, num_crossings, mean_edge_length, nodes_dict_to_array, distance_matrix
 from src.graph_parser import parseGraphmlFile
 from src.graph_dataset import GraphDataset
-from fa.forceatlas2 import ForceAtlas2 as fa2
+from fa.forceatlas2 import ForceAtlas2
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -30,11 +30,15 @@ def read_list_of_graphs(dir_name, ext):
     return list_graphs
 
 
-def draw_fa2(g): return fa2.forceatlas2_networkx_layout(
-    g, pos=nx.spectral_layout(g), iterations=100)
+def draw_fa2(g,pos):
+    fa2 = ForceAtlas2()
+    posTuple = fa2.forceatlas2_networkx_layout(G=g, pos=pos, iterations=100)
+    for x in posTuple.keys():
+        posTuple[x] = np.array(posTuple[x])
+    return posTuple
 
 
-def draw_kk(g): return nx.kamada_kawai_layout(g)
+def draw_kk(g,pos): return nx.kamada_kawai_layout(g,pos=pos)
 
 
 algo_dict = {'fa2': draw_fa2, 'kk': draw_kk}
@@ -126,7 +130,7 @@ def generate_data_from_list(list_graphs: list, bench: str, list_features: list, 
             # row = [idx_graph, idx_edge, nnodes, nedges, eb[e], st[e], max_deg, min_deg, e in bridges,
             #       total_stress0 - total_stress1, cross0 - cross1, edgel0 - edgel1,
             #       bench, exp_factor_norm, edge_cross_norm, sum_neighbour_deg_norm, max_neighbour_deg_norm, max_jnc, sum_jnc, graph_copy_entropy-graph_entropy, cos_force_diff, force_before-force_after]
-    data.append(row)
+            data.append(row)
     return data
 
 
@@ -137,15 +141,15 @@ def generate_df(list_features: list, draw_f):
     Returns:
         df (pd.DataFrame): dataframe with the features specified in the paper.
     """
+    data = []
     for bench in benchmarks:
         list_graphs = read_list_of_graphs(f'../data/{bench}/', 'graphml')
-        data = []
         data.extend(generate_data_from_list(
             list_graphs, bench, list_features, draw_f))
         # cols = ['graph_id', 'edge_id', 'num_nodes', 'num_edges', 'edge_betweenness', 'stress', 'max_deg', 'min_deg', 'is_bridge', 'diff_stress', 'diff_cross', 'diff_edgelength', 'benchmark',
         #        'exp_factor_norm', 'edge_cross_norm', 'sum_neighbour_deg_norm', 'max_neighbour_deg_norm', 'max_jnc', 'sum_jnc', 'diff_graph_entropy_norm', 'cos_force_diff', 'diff_force']
-        cols = list_features
-        df = pd.DataFrame(data, columns=cols)
+    cols = list_features
+    df = pd.DataFrame(data, columns=cols)
     return df
 
 
@@ -179,8 +183,13 @@ all_features = ['graph_id', 'edge_id', 'num_nodes', 'num_edges', 'edge_betweenne
 
 def mainDataGen():
     list_features = all_features
-    alg_name = 'kk'
+    alg_name = 'fa2'
     df = generate_df(list_features, alg_name)
     filename = 'graph_train_experiment_'+alg_name
     df.to_csv('../data/'+filename+'.csv', index=False)
     # plot_statistics(df)
+
+
+if __name__ == "__main__":
+   # stuff only to run when not called via 'import' here
+   mainDataGen()
