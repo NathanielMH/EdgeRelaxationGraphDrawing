@@ -44,7 +44,7 @@ def draw_kk(g,pos): return nx.kamada_kawai_layout(g,pos=pos)
 algo_dict = {'fa2': draw_fa2, 'kk': draw_kk}
 
 
-def generate_data_from_list(list_graphs: list, bench: str, list_features: list, algo_name: str):
+def generate_data_from_list(list_graphs: list, bench: str, list_features: list, algo_name: str, idx_start: int = 0):
     """
     Generates a list of rows for a dataframe from the graphs in list_graphs.
 
@@ -119,7 +119,7 @@ def generate_data_from_list(list_graphs: list, bench: str, list_features: list, 
             force_after = force_after_1 + force_after_2
             cos_force_diff = cos_force_diff_in_neighbourhood(
                 force_before, force_after)
-            feature_to_var = {'graph_id': idx_graph, 'edge_id': idx_edge, 'num_nodes': nnodes, 'num_edges': nedges, 'edge_betweenness': eb[e], 'stress': st[e], 'max_deg': max_deg, 'min_deg': min_deg, 'is_bridge': e in bridges,
+            feature_to_var = {'graph_id': idx_graph+idx_start, 'edge_id': idx_edge, 'num_nodes': nnodes, 'num_edges': nedges, 'edge_betweenness': eb[e], 'stress': st[e], 'max_deg': max_deg, 'min_deg': min_deg, 'is_bridge': e in bridges,
                               'diff_stress': total_stress0 - total_stress1, 'diff_cross': cross0 - cross1, 'diff_edglength': edgel0 - edgel1,
                               'benchmark': bench, 'exp_factor_norm': exp_factor_norm, 'edge_cross_norm': edge_cross_norm, 'sum_neighbour_deg_norm': sum_neighbour_deg_norm, 'max_neighbour_deg_norm': max_neighbour_deg_norm, 'max_jnc': max_jnc, 'sum_jnc': sum_jnc, 'diff_graph_entropy_norm': graph_copy_entropy-graph_entropy, 'cos_force_diff': cos_force_diff, 'diff_force': force_before-force_after}
             row = []
