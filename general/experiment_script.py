@@ -22,6 +22,7 @@ from xgboost import XGBClassifier
 @click.option('-r', '--res', 'results_file', type=click.Path(writable=True), prompt='Saving results in', default='results.txt', help='Path to save results.')
 @click.option('-i', '--ignore_feat', 'unwanted_features', help='Features to ignore.', type=str, multiple=True)
 @click.option('-a', '--alg', 'algo_name', type=click.Choice(['kk', 'fa2'], case_sensitive=False), help="Drawing algorithm to use")
+
 def perform_experiment(results_file: str, unwanted_features: list, algo_name: str):
     """Runs the experiments of Edge Relaxation Graph Drawing."""
 
