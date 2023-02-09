@@ -181,7 +181,7 @@ all_features = ['graph_id', 'edge_id', 'num_nodes', 'num_edges', 'edge_betweenne
                 'benchmark', 'exp_factor_norm', 'edge_cross_norm', 'sum_neighbour_deg_norm', 'max_neighbour_deg_norm', 'max_jnc', 'sum_jnc', 'diff_graph_entropy_norm', 'cos_force_diff', 'diff_force']
 
 
-def mainDataGen():
+def main_data_gen():
     list_features = all_features
     alg_name = 'fa2'
     df = generate_df(list_features, alg_name)
@@ -192,4 +192,4 @@ def mainDataGen():
 
 if __name__ == "__main__":
    # stuff only to run when not called via 'import' here
-   mainDataGen()
+   main_data_gen()
