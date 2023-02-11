@@ -8,15 +8,22 @@ if module_path not in sys.path:
 
 from general.xgb_model import preprocess_data, make_predictions, evaluate_accuracy
 from general.data_generation import read_list_of_graphs, generate_data_from_list, draw_fa2, draw_kk
+from general.validation import eval_relax_recomp, eval_relax_block, eval_direct_relax, eval_relax_one  # TODO: fix names 
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 import networkx as nx
+from fa.forceatlas2 import ForceAtlas2
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from xgboost import XGBClassifier
 
+fa2 = ForceAtlas2()
 
+DRAW_FS = {
+    'kk': nx.kamada_kawai_layout,
+    'fa2': fa2.forceatlas2_networkx_layout
+}
 
 @click.command()
 @click.option('-r', '--res', 'results_file', type=click.Path(writable=True), prompt='Saving results in', default='results.txt', help='Path to save results.')
@@ -49,6 +56,14 @@ def perform_experiment(results_file: str, unwanted_features: list, algo_name: st
         f.write(f'F1 score: {f1} \n')
         f.write(f'Accuracy: {acc} \n')
         f.write(f'----------------------------------------\n')
+
+    # Evaluate the model used for drawing
+    # metrics_relax_one    = eval_relax_one(xgb, df, gdict, DRAW_FS[algo_name])
+    # metrics_direct_relax = eval_direct_relax(xgb, df, gdict, DRAW_FS[algo_name])
+    # metrics_relax_recomp = eval_relax_recomp(xgb, df, gdict, DRAW_FS[algo_name])
+    # metrics_relax_block  = eval_relax_block(xgb, df, gdict, DRAW_FS[algo_name])
+
+    # TODO: dump the metrics in results_file
 
 #perform_experiment('results_experiment_fa2.txt', [], 'fa2')
 if __name__ == '__main__':
