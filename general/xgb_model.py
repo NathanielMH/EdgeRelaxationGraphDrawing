@@ -26,7 +26,7 @@ def preprocess_data(df2: pd.DataFrame):
     """Preprocesses data for XGBoost.
 
     Args:
-        filename (str): Name of the file to be read.
+        df2 (pd.DataFrame): DataFrame with information.
 
     Returns:
         Xn (np.array): Array of features.
@@ -35,7 +35,7 @@ def preprocess_data(df2: pd.DataFrame):
     df2['is_bridge'] = df2['is_bridge'].astype(float)
     yn = (df2['edge_cross_norm'] > 0).to_numpy(dtype=int)
     df2 = df2.drop(labels=['edge_cross_norm', 'edge_id', 'graph_id', 'num_nodes', 'num_edges',
-                           'benchmark', 'max_deg', 'min_deg', 'diff_cross', 'is_bridge','diff_force'], axis=1)
+                           'benchmark', 'max_deg', 'min_deg', 'diff_cross', 'is_bridge'], axis=1)
 
     Xn = df2.to_numpy(dtype=float)
     return Xn, yn
@@ -73,7 +73,7 @@ def make_predictions(grid: GridSearchCV or XGBClassifier, X_test: np.array, T: f
         T: threshold
 
     Returns:
-        None
+        predictions: predictions on test set
     """
     if isinstance(grid, GridSearchCV):
         y_pred = grid.best_estimator_.predict_proba(X_test)
@@ -127,7 +127,7 @@ def plot_precision_recall_with_threshold(yn_test: np.array, yn_res: np.array):
     plt.show()
 
 
-def mainXGB():
+def main_xgb():
     """Main function."""
     df = pd.read_csv('graph_train_experiment_kk.csv')
     Xn, yn = preprocess_data(df)
@@ -143,4 +143,4 @@ def mainXGB():
 
 if __name__ == "__main__":
    # stuff only to run when not called via 'import' here
-   mainXGB()
+   main_xgb()

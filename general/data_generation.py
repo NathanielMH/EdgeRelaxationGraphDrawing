@@ -23,11 +23,9 @@ n = 0
 m = 2
 benchmarks = ['random-dag', 'rome', 'north']
 
-
-def read_list_of_graphs(dir_name, ext):
-    list_graphs = [parseGraphmlFile(dir_name+f, weighted=False, directed=False)
-                   for f in os.listdir(dir_name) if f.endswith('.' + ext)]
-    return list_graphs
+all_features = ['graph_id', 'edge_id', 'num_nodes', 'num_edges', 'edge_betweenness', 'stress', 'max_deg', 'min_deg', 'is_bridge',
+                'diff_stress', 'diff_cross', 'diff_edglength',
+                'benchmark', 'exp_factor_norm', 'edge_cross_norm', 'sum_neighbour_deg_norm', 'max_neighbour_deg_norm', 'max_jnc', 'sum_jnc', 'diff_graph_entropy_norm','grad_diff']
 
 
 def draw_fa2(g,pos):
@@ -40,26 +38,19 @@ def draw_fa2(g,pos):
 
 def draw_kk(g,pos): return nx.kamada_kawai_layout(g,pos=pos)
 
-
 algo_dict = {'fa2': draw_fa2, 'kk': draw_kk}
 
 
-def generate_data_from_list(list_graphs: list, bench: str, list_features: list, algo_name: str, idx_start: int = 0):
-    """
-    Generates a list of rows for a dataframe from the graphs in list_graphs.
+def read_list_of_graphs(dir_name, ext):
+    list_graphs = [parseGraphmlFile(dir_name+f, weighted=False, directed=False)
+                   for f in os.listdir(dir_name) if f.endswith('.' + ext)]
+    return list_graphs
 
-    Args:
-        list_graphs (list): list of graphs.
-        bench (str): name of the benchmark.
 
-    Returns:
-        data (list): list of rows for df from list_graphs
-    """
-    data = []
-    for idx_graph, graph in tqdm(list(enumerate(list_graphs[n:m]))):
 
-        #  Run Spectral +  algorithm chosen
-        pos0 = algo_dict[algo_name](graph, pos=nx.spectral_layout(graph))
+def graph_to_df(graph: nx.Graph, idx_graph:int, draw_f,bench:str,list_features:list=all_features, return_df: bool=True) -> pd.DataFrame or list:
+    #  Run Spectral +  algorithm chosen
+        pos0 = draw_f(graph, pos=nx.spectral_layout(graph))
 
         #  Compute general graph attributes
         eb = nx.edge_betweenness(graph)     # edge betweenness
@@ -72,23 +63,15 @@ def generate_data_from_list(list_graphs: list, bench: str, list_features: list, 
         d0 = distance_matrix(graph)
         graph_entropy = graph_entropy_norm(graph)
         pos0_arr = nodes_dict_to_array(pos0)
-        r = 0.1
 
         for idx_edge, e in enumerate(graph.edges):
 
             n1, n2 = e
 
-            # force in neighbourhood of n1 before relaxation
-            force_before_1 = electro_forces_in_neighbourhood(
-                graph, n1, pos0, r)
-            # force in neighbourhood of n2 before relaxation
-            force_before_2 = electro_forces_in_neighbourhood(
-                graph, n2, pos0, r)
-            force_before = force_before_1 + force_before_2
             # New position removing edge
             graph_copy = graph.copy()
             graph_copy.remove_edges_from([e])
-            pos1 = algo_dict[algo_name](graph_copy, pos=pos0)
+            pos1 = draw_f(graph_copy, pos=pos0)
             pos1_arr = nodes_dict_to_array(pos1)
 
             cross1 = num_crossings(graph, pos1)
@@ -110,18 +93,10 @@ def generate_data_from_list(list_graphs: list, bench: str, list_features: list, 
             sum_jnc = sum_j_node_centrality(graph_copy, pos1_arr, e)
             nnodes, nedges = len(graph.nodes), len(graph.edges)
             graph_copy_entropy = graph_entropy_norm(graph_copy)
-            # force in neighbourhood of n1 before relaxation
-            force_after_1 = electro_forces_in_neighbourhood(
-                graph_copy, n1, pos1, r)
-            # force in neighbourhood of n2 before relaxation
-            force_after_2 = electro_forces_in_neighbourhood(
-                graph_copy, n2, pos1, r)
-            force_after = force_after_1 + force_after_2
-            cos_force_diff = cos_force_diff_in_neighbourhood(
-                force_before, force_after)
-            feature_to_var = {'graph_id': idx_graph+idx_start, 'edge_id': idx_edge, 'num_nodes': nnodes, 'num_edges': nedges, 'edge_betweenness': eb[e], 'stress': st[e], 'max_deg': max_deg, 'min_deg': min_deg, 'is_bridge': e in bridges,
+
+            feature_to_var = {'graph_id': idx_graph, 'edge_id': idx_edge, 'num_nodes': nnodes, 'num_edges': nedges, 'edge_betweenness': eb[e], 'stress': st[e], 'max_deg': max_deg, 'min_deg': min_deg, 'is_bridge': e in bridges,
                               'diff_stress': total_stress0 - total_stress1, 'diff_cross': cross0 - cross1, 'diff_edglength': edgel0 - edgel1,
-                              'benchmark': bench, 'exp_factor_norm': exp_factor_norm, 'edge_cross_norm': edge_cross_norm, 'sum_neighbour_deg_norm': sum_neighbour_deg_norm, 'max_neighbour_deg_norm': max_neighbour_deg_norm, 'max_jnc': max_jnc, 'sum_jnc': sum_jnc, 'diff_graph_entropy_norm': graph_copy_entropy-graph_entropy, 'cos_force_diff': cos_force_diff, 'diff_force': force_before-force_after}
+                              'benchmark': bench, 'exp_factor_norm': exp_factor_norm, 'edge_cross_norm': edge_cross_norm, 'sum_neighbour_deg_norm': sum_neighbour_deg_norm, 'max_neighbour_deg_norm': max_neighbour_deg_norm, 'max_jnc': max_jnc, 'sum_jnc': sum_jnc, 'diff_graph_entropy_norm': graph_copy_entropy-graph_entropy, 'grad_diff': grad_diff}
             row = []
             for feature in list_features:
                 if feature in feature_to_var.keys():
@@ -130,7 +105,26 @@ def generate_data_from_list(list_graphs: list, bench: str, list_features: list, 
             # row = [idx_graph, idx_edge, nnodes, nedges, eb[e], st[e], max_deg, min_deg, e in bridges,
             #       total_stress0 - total_stress1, cross0 - cross1, edgel0 - edgel1,
             #       bench, exp_factor_norm, edge_cross_norm, sum_neighbour_deg_norm, max_neighbour_deg_norm, max_jnc, sum_jnc, graph_copy_entropy-graph_entropy, cos_force_diff, force_before-force_after]
-            data.append(row)
+            if return_df:
+                return pd.DataFrame([row], columns=list_features)
+            else:
+                return row
+
+def generate_data_from_list(list_graphs: list, bench: str, list_features: list, draw_f, idx_start: int = 0):
+    """
+    Generates a list of rows for a dataframe from the graphs in list_graphs.
+
+    Args:
+        list_graphs (list): list of graphs.
+        bench (str): name of the benchmark.
+
+    Returns:
+        data (list): list of rows for df from list_graphs
+    """
+    data = []
+    for idx_graph, graph in tqdm(list(enumerate(list_graphs[n:m]))):
+        row = graph_to_df(graph, idx_graph+idx_start, draw_f, list_features, bench, return_df=False)
+        data.append(row)
     return data
 
 
@@ -176,15 +170,11 @@ def plot_statistics(df):
     plt.show()
 
 
-all_features = ['graph_id', 'edge_id', 'num_nodes', 'num_edges', 'edge_betweenness', 'stress', 'max_deg', 'min_deg', 'is_bridge',
-                'diff_stress', 'diff_cross', 'diff_edglength',
-                'benchmark', 'exp_factor_norm', 'edge_cross_norm', 'sum_neighbour_deg_norm', 'max_neighbour_deg_norm', 'max_jnc', 'sum_jnc', 'diff_graph_entropy_norm', 'cos_force_diff', 'diff_force']
-
-
 def main_data_gen():
     list_features = all_features
     alg_name = 'fa2'
-    df = generate_df(list_features, alg_name)
+    draw_f = algo_dict[alg_name]
+    df = generate_df(list_features, draw_f)
     filename = 'graph_train_experiment_'+alg_name
     df.to_csv('../data/'+filename+'.csv', index=False)
     # plot_statistics(df)
