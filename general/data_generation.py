@@ -136,15 +136,12 @@ def generate_df(list_features: list, draw_f):
         df (pd.DataFrame): dataframe with the features specified in the paper.
     """
     data = []
+    last_id = 0
     for bench in benchmarks:
         list_graphs = read_list_of_graphs(f'../data/{bench}/', 'graphml')
         data.extend(generate_data_from_list(
-            list_graphs, bench, list_features, draw_f))
-        # cols = ['graph_id', 'edge_id', 'num_nodes', 'num_edges', 'edge_betweenness', 'stress', 'max_deg', 'min_deg', 'is_bridge', 'diff_stress', 'diff_cross', 'diff_edgelength', 'benchmark',
-        #        'exp_factor_norm', 'edge_cross_norm', 'sum_neighbour_deg_norm', 'max_neighbour_deg_norm', 'max_jnc', 'sum_jnc', 'diff_graph_entropy_norm', 'cos_force_diff', 'diff_force']
-    cols = list_features
-    df = pd.DataFrame(data, columns=cols)
-    return df
+            list_graphs, bench, list_features, draw_f, last_id))
+        last_id = data[-1][0]+1
 
 
 def plot_statistics(df):
