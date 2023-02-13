@@ -29,6 +29,16 @@ all_features = ['graph_id', 'edge_id', 'num_nodes', 'num_edges', 'edge_betweenne
 
 
 def draw_fa2(g,pos):
+    """
+    Draw graph using ForceAtlas2 algorithm given optional initial positions
+
+    Args:
+        g (nx.Graph): graph
+        pos (dict): initial positions
+
+    Returns:
+        dict: positions of nodes
+    """
     fa2 = ForceAtlas2()
     posTuple = fa2.forceatlas2_networkx_layout(G=g, pos=pos, iterations=100)
     for x in posTuple.keys():
@@ -36,12 +46,33 @@ def draw_fa2(g,pos):
     return posTuple
 
 
-def draw_kk(g,pos): return nx.kamada_kawai_layout(g,pos=pos)
+def draw_kk(g,pos):
+    """
+    Draw graph using Kamada-Kawai algorithm given optional initial positions
+
+    Args:
+        g (nx.Graph): graph
+        pos (dict): initial positions
+
+    Returns:
+        dict: positions of nodes
+    """
+    return nx.kamada_kawai_layout(g,pos=pos)
 
 algo_dict = {'fa2': draw_fa2, 'kk': draw_kk}
 
 
 def read_list_of_graphs(dir_name, ext):
+    """
+    Read all the graphs in a directory given extension of the files
+
+    Args:
+        dir_name (str): directory name
+        ext (str): extension of the files
+
+    Returns:
+        list: list of graphs
+    """
     list_graphs = [parseGraphmlFile(dir_name+f, weighted=False, directed=False)
                    for f in os.listdir(dir_name) if f.endswith('.' + ext)]
     return list_graphs
@@ -49,66 +80,77 @@ def read_list_of_graphs(dir_name, ext):
 
 
 def graph_to_df(graph: nx.Graph, idx_graph:int, draw_f,bench:str,list_features:list=all_features, return_df: bool=True) -> pd.DataFrame or list:
+    """
+    Convert a graph to a dataframe with the specified features
+
+    Args:
+        graph (nx.Graph): graph
+        idx_graph (int): indentifier of the graph
+        draw_f (function): function to draw the graph
+        bench (str): benchmark of the graph
+        list_features (list, optional): list of features to include in the dataframe. Defaults to all_features.
+        return_df (bool, optional): return dataframe or list of lists. Defaults to True.
+
+    Returns:
+        pd.DataFrame or list: dataframe or list of lists with the specified features
+    """
     #  Run Spectral +  algorithm chosen
-        pos0 = draw_f(graph, pos=nx.spectral_layout(graph))
+    pos0 = draw_f(graph, pos=nx.spectral_layout(graph))
 
         #  Compute general graph attributes
-        eb = nx.edge_betweenness(graph)     # edge betweenness
-        st = stress(graph, pos0)             # stress
-        cross0 = num_crossings(graph, pos0)
-        edgel0 = mean_edge_length(graph, pos0)
-        total_stress0 = total_stress(graph, pos0)
+    eb = nx.edge_betweenness(graph)     # edge betweenness
+    st = stress(graph, pos0)             # stress
+    cross0 = num_crossings(graph, pos0)
+    edgel0 = mean_edge_length(graph, pos0)
+    total_stress0 = total_stress(graph, pos0)
+    deg = nx.degree(graph, graph.nodes)
+    bridges = nx.bridges(graph)
+    d0 = distance_matrix(graph)
+    graph_entropy = graph_entropy_norm(graph)
+    pos0_arr = nodes_dict_to_array(pos0)
+
+    for idx_edge, e in enumerate(graph.edges):
+
+        n1, n2 = e
+
+        # New position removing edge
+        graph_copy = graph.copy()
+        graph_copy.remove_edges_from([e])
+        pos1 = draw_f(graph_copy, pos=pos0)
+        pos1_arr = nodes_dict_to_array(pos1)
+
+        cross1 = num_crossings(graph, pos1)
+        edgel1 = mean_edge_length(graph, pos1)
+        total_stress1 = total_stress(graph, pos1)
         deg = nx.degree(graph, graph.nodes)
-        bridges = nx.bridges(graph)
-        d0 = distance_matrix(graph)
-        graph_entropy = graph_entropy_norm(graph)
-        pos0_arr = nodes_dict_to_array(pos0)
+        exp_factor_norm = expansion_factor_norm(pos0_arr, pos1_arr)
+        edge_cross_norm = edge_crossings_norm(
+            cross0-cross1, len(graph_copy.edges))
+        d1 = distance_matrix(graph_copy)
+        grad_diff = np.linalg.norm(gradient_kamada_kawai(
+            pos0_arr, d0)-gradient_kamada_kawai(pos1_arr, d1))
+        # Extra attributes
+        max_deg = max(deg[n1], deg[n2])
+        min_deg = min(deg[n1], deg[n2])
+        sum_neighbour_deg_norm = sum_neighbour_degrees_norm(graph_copy, e)
+        max_neighbour_deg_norm = max_neighbour_degrees_norm(graph_copy, e)
+        max_jnc = max_j_node_centrality(graph_copy, pos1_arr, e)
+        sum_jnc = sum_j_node_centrality(graph_copy, pos1_arr, e)
+        nnodes, nedges = len(graph.nodes), len(graph.edges)
+        graph_copy_entropy = graph_entropy_norm(graph_copy)
 
-        for idx_edge, e in enumerate(graph.edges):
-
-            n1, n2 = e
-
-            # New position removing edge
-            graph_copy = graph.copy()
-            graph_copy.remove_edges_from([e])
-            pos1 = draw_f(graph_copy, pos=pos0)
-            pos1_arr = nodes_dict_to_array(pos1)
-
-            cross1 = num_crossings(graph, pos1)
-            edgel1 = mean_edge_length(graph, pos1)
-            total_stress1 = total_stress(graph, pos1)
-            deg = nx.degree(graph, graph.nodes)
-            exp_factor_norm = expansion_factor_norm(pos0_arr, pos1_arr)
-            edge_cross_norm = edge_crossings_norm(
-                cross0-cross1, len(graph_copy.edges))
-            d1 = distance_matrix(graph_copy)
-            grad_diff = np.linalg.norm(gradient_kamada_kawai(
-                pos0_arr, d0)-gradient_kamada_kawai(pos1_arr, d1))
-            # Extra attributes
-            max_deg = max(deg[n1], deg[n2])
-            min_deg = min(deg[n1], deg[n2])
-            sum_neighbour_deg_norm = sum_neighbour_degrees_norm(graph_copy, e)
-            max_neighbour_deg_norm = max_neighbour_degrees_norm(graph_copy, e)
-            max_jnc = max_j_node_centrality(graph_copy, pos1_arr, e)
-            sum_jnc = sum_j_node_centrality(graph_copy, pos1_arr, e)
-            nnodes, nedges = len(graph.nodes), len(graph.edges)
-            graph_copy_entropy = graph_entropy_norm(graph_copy)
-
-            feature_to_var = {'graph_id': idx_graph, 'edge_id': idx_edge, 'num_nodes': nnodes, 'num_edges': nedges, 'edge_betweenness': eb[e], 'stress': st[e], 'max_deg': max_deg, 'min_deg': min_deg, 'is_bridge': e in bridges,
+        feature_to_var = {'graph_id': idx_graph, 'edge_id': idx_edge, 'num_nodes': nnodes, 'num_edges': nedges, 'edge_betweenness': eb[e], 'stress': st[e], 'max_deg': max_deg, 'min_deg': min_deg, 'is_bridge': e in bridges,
                               'diff_stress': total_stress0 - total_stress1, 'diff_cross': cross0 - cross1, 'diff_edglength': edgel0 - edgel1,
                               'benchmark': bench, 'exp_factor_norm': exp_factor_norm, 'edge_cross_norm': edge_cross_norm, 'sum_neighbour_deg_norm': sum_neighbour_deg_norm, 'max_neighbour_deg_norm': max_neighbour_deg_norm, 'max_jnc': max_jnc, 'sum_jnc': sum_jnc, 'diff_graph_entropy_norm': graph_copy_entropy-graph_entropy, 'grad_diff': grad_diff}
-            row = []
-            for feature in list_features:
-                if feature in feature_to_var.keys():
-                    row.append(feature_to_var[feature])
+        row = []
+        for feature in list_features:
+            if feature in feature_to_var.keys():
+                row.append(feature_to_var[feature])
 
-            # row = [idx_graph, idx_edge, nnodes, nedges, eb[e], st[e], max_deg, min_deg, e in bridges,
-            #       total_stress0 - total_stress1, cross0 - cross1, edgel0 - edgel1,
-            #       bench, exp_factor_norm, edge_cross_norm, sum_neighbour_deg_norm, max_neighbour_deg_norm, max_jnc, sum_jnc, graph_copy_entropy-graph_entropy, cos_force_diff, force_before-force_after]
-            if return_df:
-                return pd.DataFrame([row], columns=list_features)
-            else:
-                return row
+        if return_df:
+            return pd.DataFrame([row], columns=list_features)
+        else:
+            return row
 
 def generate_data_from_list(list_graphs: list, bench: str, list_features: list, draw_f, idx_start: int = 0):
     """
