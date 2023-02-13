@@ -6,7 +6,7 @@ from tqdm import tqdm
 import networkx as nx
 
 from xgb_model import preprocess_data, make_predictions
-from src.graph_utils import compareGraphs
+from src.graph_utils import compareGraphs, quality_measures
 from general.data_generation import graph_to_df
 
 df = pd.read_csv('../data/graph_train.csv')
@@ -121,10 +121,11 @@ def relax_block(g: nx.Graph, data: pd.DataFrame, draw_f, model: XGBClassifier, d
     # returns (num_crossings, aspect_ratio, mean_crossing_angle, pseudo_vertex_resolution, mean_angular_resolution, mean_edge_length, edge_length_variance)
     return compareGraphs(g, g, draw_f(g), draw_f(g2), show=False)
 
-def relax_and_recompute(graph:nx.Graph,idx_graph:int,draw_f,model:XGBClassifier,data:pd.DataFrame=None,k:int=3):
+def relax_and_recompute(graph:nx.Graph,draw_f,model:XGBClassifier,data:pd.DataFrame=None,k:int=3):
     """Relax 1 edge -> recompute -> relax 1 edge -> recompute -> ... k times"""
     if data is None:
-        data = graph_to_df(graph,idx_graph,draw_f,bench='Test')
+        data = graph_to_df(graph,0,draw_f,bench='Test')
+    
     X,y = preprocess_data(data)
     proba = make_predictions(model,X,ret_proba=True)
     removed_edges = []
@@ -139,15 +140,46 @@ def relax_and_recompute(graph:nx.Graph,idx_graph:int,draw_f,model:XGBClassifier,
         g2.remove_edges_from([max_proba_edge])
         pos1 = draw_f(g2,pos=pos1)
 
-        data = graph_to_df(g2,idx_graph,draw_f,bench='Test')
+        data = graph_to_df(g2,0,draw_f,bench='Test')
         proba = make_predictions(model,data,ret_proba=True)
-    return compareGraphs(graph,graph,pos0,pos1,show=False,rmedges=removed_edges)
+    return pos1
 #####
 # Evaluation functions 
 #####
 
-def eval(model: XGBClassifier, df: pd.Dataframe, graphid2src: dict, method, results_file: str):
+def eval(model: XGBClassifier, df: pd.Dataframe, graphid2src: dict, method, results_file: str, draw_f, method_name:str,**kwargs):
     """Evaluate the given method"""
-    ...
+    average_percentage_edge_cross_reduction = 0.
+    average_edge_cross_angle_reduction = 0.
+    average_aspect_ratio_reduction = 0.
+    average_edge_cross_reduction = 0.
+    for graphid, src in tqdm(graphid2src.items()):
+        print(f"Processing graph {graphid}")
+        g = src
+        data = df[df['graphid'] == graphid]
+        pos0 = draw_f(g)
+        if method_name == 'relax_one':
+            pos1 = method(g, draw_f, model, data)
+        elif method_name == 'just_relax':
+            pos1 = method(g, draw_f, model, data)
+        elif method_name == 'relax_block':
+            pos1 = method(g, draw_f, model, data, kwargs['depth_limit'])
+        else:
+            pos1 = method(g, draw_f, model, data, kwargs['k'])
+        
+        num_crossings0, aspect_ratio0, mean_crossing_angle0, _, _, _, _ = quality_measures(g, pos=pos0)
+        num_crossings1, aspect_ratio1, mean_crossing_angle1, _, _, _, _ = quality_measures(g, pos=pos1)
+        average_percentage_edge_cross_reduction += (num_crossings0 - num_crossings1) / num_crossings0
+        average_edge_cross_angle_reduction += mean_crossing_angle0 - mean_crossing_angle1
+        average_aspect_ratio_reduction += aspect_ratio0 - aspect_ratio1
+        average_edge_cross_reduction += num_crossings0 - num_crossings1
+    average_percentage_edge_cross_reduction /= len(graphid2src)
+    average_percentage_edge_cross_reduction *= 100
+    average_edge_cross_angle_reduction /= len(graphid2src)
+    average_aspect_ratio_reduction /= len(graphid2src)
+    average_edge_cross_reduction /= len(graphid2src)
+    with open(results_file, 'a') as f:
+        ...
+
 
 
