@@ -7,20 +7,7 @@ import networkx as nx
 
 from xgb_model import preprocess_data, make_predictions
 from src.graph_utils import compareGraphs, quality_measures
-from general.data_generation import graph_to_df
-
-df = pd.read_csv('../data/graph_train.csv')
-print(df[['graph_id', 'benchmark']].head())
-y = pd.cut(df['edge_cross_norm'], bins=[-1,-1e-10,1]).to_numpy()
-df = df.drop(labels=['edge_cross_norm','edge_id','graph_id','num_nodes','num_edges','benchmark','max_deg','min_deg','Unnamed: 0'],axis=1)
-list_columns = list(df)
-
-for col in list_columns:
-    print(col)
-    if col!= 'edge_cross_norm' and col!= 'is_bridge':
-        df[col] = pd.qcut(df[col],q=5)
-
-X = df.to_numpy()
+from general.data_generation import graph_to_df, draw_fa2, draw_kk
 
 # Replace what is up there with preprocess data function.
 
@@ -122,7 +109,18 @@ def relax_block(g: nx.Graph, data: pd.DataFrame, draw_f, model: XGBClassifier, d
     return compareGraphs(g, g, draw_f(g), draw_f(g2), show=False)
 
 def relax_and_recompute(graph:nx.Graph,draw_f,model:XGBClassifier,data:pd.DataFrame=None,k:int=3):
-    """Relax 1 edge -> recompute -> relax 1 edge -> recompute -> ... k times"""
+    """Relax 1 edge -> recompute -> relax 1 edge -> recompute -> ... k times
+    
+    Args:
+        graph (nx.Graph): graph to relax
+        draw_f (function): function to draw the graph
+        model (XGBClassifier): model to use for predictions on which edge to relax
+        data (pd.DataFrame): data to use for predictions. If None, it will be computed from the graph
+        k (int): number of times we execute the procedure. Default is 3.
+
+    Returns:
+        pos (dict): final positions of the nodes
+    """
     if data is None:
         data = graph_to_df(graph,0,draw_f,bench='Test')
     
@@ -148,11 +146,29 @@ def relax_and_recompute(graph:nx.Graph,draw_f,model:XGBClassifier,data:pd.DataFr
 #####
 
 def eval(model: XGBClassifier, df: pd.Dataframe, graphid2src: dict, method, results_file: str, draw_f, method_name:str,**kwargs):
-    """Evaluate the given method"""
+    """Evaluate the given method with the given model on the given graphs
+    
+    Args:
+        model (XGBClassifier): The model to use
+        df (pd.Dataframe): The dataframe containing the graph data
+        graphid2src (dict): A dictionary mapping graph ids to the graph objects
+        method (function): The function used to generate the new layout
+        results_file (str): The file to save the results to
+        draw_f (function): The function used to draw the graphs
+        method_name (str): The name of the method
+        **kwargs: Additional arguments to pass to the method depending on the method
+    
+    Returns:
+        None
+    """
+
+    # Initialize quality measures
     average_percentage_edge_cross_reduction = 0.
     average_edge_cross_angle_reduction = 0.
     average_aspect_ratio_reduction = 0.
     average_edge_cross_reduction = 0.
+
+    # Iterate over all graphs
     for graphid, src in tqdm(graphid2src.items()):
         print(f"Processing graph {graphid}")
         g = src
@@ -167,19 +183,30 @@ def eval(model: XGBClassifier, df: pd.Dataframe, graphid2src: dict, method, resu
         else:
             pos1 = method(g, draw_f, model, data, kwargs['k'])
         
+        # Compute quality measures for both layouts
         num_crossings0, aspect_ratio0, mean_crossing_angle0, _, _, _, _ = quality_measures(g, pos=pos0)
         num_crossings1, aspect_ratio1, mean_crossing_angle1, _, _, _, _ = quality_measures(g, pos=pos1)
+
+        # Compute the comparing metrics
         average_percentage_edge_cross_reduction += (num_crossings0 - num_crossings1) / num_crossings0
         average_edge_cross_angle_reduction += mean_crossing_angle0 - mean_crossing_angle1
         average_aspect_ratio_reduction += aspect_ratio0 - aspect_ratio1
         average_edge_cross_reduction += num_crossings0 - num_crossings1
+
+    # Normalize comparing metrics
     average_percentage_edge_cross_reduction /= len(graphid2src)
     average_percentage_edge_cross_reduction *= 100
     average_edge_cross_angle_reduction /= len(graphid2src)
     average_aspect_ratio_reduction /= len(graphid2src)
     average_edge_cross_reduction /= len(graphid2src)
+
+    # Write results to file
     with open(results_file, 'a') as f:
-        ...
+        f.write(f"Method used: {method_name} \n \
+            Average of percentage of edge crossing reduction: {average_percentage_edge_cross_reduction} \n \
+            Average of edge cross angle reduction: {average_edge_cross_angle_reduction}\n \
+            Average of aspect ratio reduction: {average_aspect_ratio_reduction} \n \
+            Average of edge cross reduction: {average_edge_cross_reduction} \n")
 
 
 
