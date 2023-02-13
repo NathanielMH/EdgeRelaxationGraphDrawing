@@ -121,8 +121,10 @@ def relax_block(g: nx.Graph, data: pd.DataFrame, draw_f, model: XGBClassifier, d
     # returns (num_crossings, aspect_ratio, mean_crossing_angle, pseudo_vertex_resolution, mean_angular_resolution, mean_edge_length, edge_length_variance)
     return compareGraphs(g, g, draw_f(g), draw_f(g2), show=False)
 
-def relax_and_recompute(graph:nx.Graph,idx_graph:int,draw_f,model:XGBClassifier,data:pd.DataFrame,k:int=3):
+def relax_and_recompute(graph:nx.Graph,idx_graph:int,draw_f,model:XGBClassifier,data:pd.DataFrame=None,k:int=3):
     """Relax 1 edge -> recompute -> relax 1 edge -> recompute -> ... k times"""
+    if data is None:
+        data = graph_to_df(graph,idx_graph,draw_f,bench='Test')
     X,y = preprocess_data(data)
     proba = make_predictions(model,X,ret_proba=True)
     removed_edges = []
@@ -144,8 +146,8 @@ def relax_and_recompute(graph:nx.Graph,idx_graph:int,draw_f,model:XGBClassifier,
 # Evaluation functions 
 #####
 
-def eval_relax_one(model: XGBClassifier, df: pd.Dataframe, graphid2src: dict, draw_f):
-    """Evaluate the method relax_one"""
+def eval(model: XGBClassifier, df: pd.Dataframe, graphid2src: dict, method, results_file: str):
+    """Evaluate the given method"""
     ...
 
 

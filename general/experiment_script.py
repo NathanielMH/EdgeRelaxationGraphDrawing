@@ -30,7 +30,7 @@ DRAW_FS = {
 @click.option('-i', '--ignore_feat', 'unwanted_features', help='Features to ignore.', type=str, multiple=True)
 @click.option('-a', '--alg', 'algo_name', type=click.Choice(['kk', 'fa2'], case_sensitive=False), help="Drawing algorithm to use")
 
-def perform_experiment(results_file: str, unwanted_features: list, algo_name: str):
+def perform_experiment_model(results_file: str, unwanted_features: list, algo_name: str):
     """Runs the experiments of Edge Relaxation Graph Drawing."""
 
     # Select dataframe that contains that was generated with the algorithm I chose
@@ -67,4 +67,4 @@ def perform_experiment(results_file: str, unwanted_features: list, algo_name: st
 
 #perform_experiment('results_experiment_fa2.txt', [], 'fa2')
 if __name__ == '__main__':
-    perform_experiment()
+    perform_experiment_model()
