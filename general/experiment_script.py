@@ -8,7 +8,7 @@ if module_path not in sys.path:
 
 from general.xgb_model import preprocess_data, make_predictions, evaluate_accuracy
 from general.data_generation import read_list_of_graphs, generate_data_from_list, draw_fa2, draw_kk
-from general.validation import eval_relax_recomp, eval_relax_block, eval_direct_relax, eval_relax_one  # TODO: fix names 
+from general.validation import relax_recomp, relax_block, direct_relax, relax_one, eval
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -63,7 +63,7 @@ def perform_experiment_model(results_file: str, unwanted_features: list, algo_na
     # metrics_relax_recomp = eval_relax_recomp(xgb, df, gdict, DRAW_FS[algo_name])
     # metrics_relax_block  = eval_relax_block(xgb, df, gdict, DRAW_FS[algo_name])
 
-    # TODO: dump the metrics in results_file
+    # eval(xgb, df, gdict, relax_one, results_file, DRAW_FS[algo_name], 'relax_one')
 
 #perform_experiment('results_experiment_fa2.txt', [], 'fa2')
 if __name__ == '__main__':

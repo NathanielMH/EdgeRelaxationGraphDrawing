@@ -39,8 +39,18 @@ def bfs_on_edges(g: nx.Graph, edge: list or tuple, depth_limit) -> list:
 #####
 # Drawing functions 
 #####
-def relax_one(g: nx.Graph, data: pd.DataFrame, draw_f, model: XGBClassifier):
-    """Relax just the best edge"""
+def relax_one(graph: nx.Graph, draw_f: callable[np.array], model: XGBClassifier, data: pd.DataFrame = None, thresh: float = 0.5):
+    """Relax only best edge
+    
+    Args:
+        graph (nx.Graph): graph to relax
+        draw_f (function): function to draw the graph
+        model (XGBClassifier): model to use for predictions on which edge to relax
+        data (pd.DataFrame): data to use for predictions. If None, it will be computed from the graph
+
+    Returns:
+        pos (dict): final positions of the nodes
+    """
 
     X, y = preprocess_data(data)
     proba = make_predictions(model, X, ret_proba = True)
@@ -51,12 +61,22 @@ def relax_one(g: nx.Graph, data: pd.DataFrame, draw_f, model: XGBClassifier):
     g2 = g.copy()
     g2.remove_edges_from([max_proba_edge])
     
-    # returns (num_crossings, aspect_ratio, mean_crossing_angle, pseudo_vertex_resolution, mean_angular_resolution, mean_edge_length, edge_length_variance)
-    return compareGraphs(g, g, draw_f(g), draw_f(g2), show=False)
+    pos = draw_f(g2, pos=draw_f(graph))
+    return pos
 
+def just_relax(graph: nx.Graph, draw_f: callable[np.array], model: XGBClassifier, data: pd.DataFrame = None, thresh: float = 0.5):
+    """Relax all edges with prob > thresh
+    
+    Args:
+        graph (nx.Graph): graph to relax
+        draw_f (function): function to draw the graph
+        model (XGBClassifier): model to use for predictions on which edge to relax
+        data (pd.DataFrame): data to use for predictions. If None, it will be computed from the graph
+        thresh (float): threshold to select edges. Default is 0.5.
 
-def just_relax(g: nx.Graph, data: pd.DataFrame, draw_f, model: XGBClassifier):
-    """Relax just the best edge"""
+    Returns:
+        pos (dict): final positions of the nodes
+    """
 
     X, y = preprocess_data(data)
     proba = make_predictions(model, X, ret_proba = True)
@@ -67,13 +87,23 @@ def just_relax(g: nx.Graph, data: pd.DataFrame, draw_f, model: XGBClassifier):
     g2 = g.copy()
     g2.remove_edges_from(selected_edges)
     
-    # returns (num_crossings, aspect_ratio, mean_crossing_angle, pseudo_vertex_resolution, mean_angular_resolution, mean_edge_length, edge_length_variance)
-    return compareGraphs(g, g, draw_f(g), draw_f(g2), show=False)
+    pos = draw_f(g2, pos=draw_f(graph))
+
+    return pos
 
 
-def relax_block(g: nx.Graph, data: pd.DataFrame, draw_f, model: XGBClassifier, depth_limit: int = 3):
-    """Relax 1 edge -> block neighbours -> relax 1 edge -> block neighbours -> ...
-    Note: no recomputing.
+def relax_block(graph: nx.Graph, draw_f: callable[np.array], model: XGBClassifier, data: pd.DataFrame = None, k: int = 3):
+    """Relax 1 edge -> block near edges -> relax 1 edge -> block near edges -> ... 
+    
+    Args:
+        graph (nx.Graph): graph to relax
+        draw_f (function): function to draw the graph
+        model (XGBClassifier): model to use for predictions on which edge to relax
+        data (pd.DataFrame): data to use for predictions. If None, it will be computed from the graph
+        depth_limit (int): number of bfs steps to block. Default is 3.
+
+    Returns:
+        pos (dict): final positions of the nodes
     """
 
     X, y = preprocess_data(data)
@@ -83,7 +113,7 @@ def relax_block(g: nx.Graph, data: pd.DataFrame, draw_f, model: XGBClassifier, d
     relaxed_edges = []
     diff_crossings_hist = []
 
-    g2 = g.copy()
+    g2 = graph.copy()
 
     while diff_crossings < 0:
         max_proba_idx = np.argmax(proba)
@@ -102,13 +132,15 @@ def relax_block(g: nx.Graph, data: pd.DataFrame, draw_f, model: XGBClassifier, d
     
     min_crossings_idx = np.argmin(diff_crossings_hist)
 
-    g2 = g.copy()
+    g2 = graph.copy()
+
     g2.remove_edges_from([relaxed_edges[:min_crossings_idx]])
 
-    # returns (num_crossings, aspect_ratio, mean_crossing_angle, pseudo_vertex_resolution, mean_angular_resolution, mean_edge_length, edge_length_variance)
-    return compareGraphs(g, g, draw_f(g), draw_f(g2), show=False)
+    pos = draw_f(g2, pos=draw_f(graph))
 
-def relax_and_recompute(graph:nx.Graph,draw_f,model:XGBClassifier,data:pd.DataFrame=None,k:int=3):
+    return pos
+
+def relax_and_recompute(graph: nx.Graph, draw_f: callable[np.array], model: XGBClassifier, data: pd.DataFrame = None, k: int = 3):
     """Relax 1 edge -> recompute -> relax 1 edge -> recompute -> ... k times
     
     Args:
