@@ -8,7 +8,6 @@ if module_path not in sys.path:
 
 from general.xgb_model import preprocess_data, make_predictions, evaluate_accuracy
 from general.data_generation import read_list_of_graphs, generate_data_from_list, draw_fa2, draw_kk
-from general.validation import relax_recomp, relax_block, direct_relax, relax_one, eval
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -46,7 +45,7 @@ def perform_experiment_model(results_file: str, unwanted_features: list, algo_na
     xgb = XGBClassifier(learning_rate=0.02, n_estimators=600,
                         objective='binary:logistic', silent=True, nthread=1)
     xgb.fit(Xn_train, yn_train)
-
+    xgb.save_model(f'../data/xgb_{algo_name}.model')
     # Evaluate the model and save the results in results_file
     y_res = make_predictions(xgb, Xn_test)
     f1, acc = evaluate_accuracy(yn_test, y_res)

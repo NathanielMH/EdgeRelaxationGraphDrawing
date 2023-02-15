@@ -20,8 +20,9 @@ import pandas as pd
 
 # Generate Dataframe
 n = 0
-m = 2
+m = 5
 benchmarks = ['random-dag', 'rome', 'north']
+
 
 all_features = ['graph_id', 'edge_id', 'num_nodes', 'num_edges', 'edge_betweenness', 'stress', 'max_deg', 'min_deg', 'is_bridge',
                 'diff_stress', 'diff_cross', 'diff_edglength',
@@ -97,7 +98,7 @@ def graph_to_df(graph: nx.Graph, idx_graph:int, draw_f,bench:str,list_features:l
     #  Run Spectral +  algorithm chosen
     pos0 = draw_f(graph, pos=nx.spectral_layout(graph))
 
-        #  Compute general graph attributes
+    #  Compute general graph attributes
     eb = nx.edge_betweenness(graph)     # edge betweenness
     st = stress(graph, pos0)             # stress
     cross0 = num_crossings(graph, pos0)
@@ -109,6 +110,7 @@ def graph_to_df(graph: nx.Graph, idx_graph:int, draw_f,bench:str,list_features:l
     graph_entropy = graph_entropy_norm(graph)
     pos0_arr = nodes_dict_to_array(pos0)
 
+    data = []
     for idx_edge, e in enumerate(graph.edges):
 
         n1, n2 = e
@@ -138,7 +140,7 @@ def graph_to_df(graph: nx.Graph, idx_graph:int, draw_f,bench:str,list_features:l
         sum_jnc = sum_j_node_centrality(graph_copy, pos1_arr, e)
         nnodes, nedges = len(graph.nodes), len(graph.edges)
         graph_copy_entropy = graph_entropy_norm(graph_copy)
-
+        
         feature_to_var = {'graph_id': idx_graph, 'edge_id': idx_edge, 'num_nodes': nnodes, 'num_edges': nedges, 'edge_betweenness': eb[e], 'stress': st[e], 'max_deg': max_deg, 'min_deg': min_deg, 'is_bridge': e in bridges,
                               'diff_stress': total_stress0 - total_stress1, 'diff_cross': cross0 - cross1, 'diff_edglength': edgel0 - edgel1,
                               'benchmark': bench, 'exp_factor_norm': exp_factor_norm, 'edge_cross_norm': edge_cross_norm, 'sum_neighbour_deg_norm': sum_neighbour_deg_norm, 'max_neighbour_deg_norm': max_neighbour_deg_norm, 'max_jnc': max_jnc, 'sum_jnc': sum_jnc, 'diff_graph_entropy_norm': graph_copy_entropy-graph_entropy, 'grad_diff': grad_diff}
@@ -146,11 +148,15 @@ def graph_to_df(graph: nx.Graph, idx_graph:int, draw_f,bench:str,list_features:l
         for feature in list_features:
             if feature in feature_to_var.keys():
                 row.append(feature_to_var[feature])
+            else:
+                print('Feature not included ', feature)
+        
+        data.append(row)
 
-        if return_df:
-            return pd.DataFrame([row], columns=list_features)
-        else:
-            return row
+    if return_df:
+        return pd.DataFrame(data, columns=list_features)
+    else:
+        return data
 
 def generate_data_from_list(list_graphs: list, bench: str, list_features: list, draw_f, idx_start: int = 0):
     """
@@ -164,9 +170,10 @@ def generate_data_from_list(list_graphs: list, bench: str, list_features: list, 
         data (list): list of rows for df from list_graphs
     """
     data = []
-    for idx_graph, graph in tqdm(list(enumerate(list_graphs[n:m]))):
-        row = graph_to_df(graph, idx_graph+idx_start, draw_f, list_features, bench, return_df=False)
-        data.append(row)
+    for idx_graph, graph in enumerate(list_graphs[n:m]):
+        graph_data = graph_to_df(graph, idx_graph+idx_start, draw_f, bench,list_features, return_df=False)
+        data.extend(graph_data)
+
     return data
 
 
@@ -183,7 +190,8 @@ def generate_df(list_features: list, draw_f):
         list_graphs = read_list_of_graphs(f'../data/{bench}/', 'graphml')
         data.extend(generate_data_from_list(
             list_graphs, bench, list_features, draw_f, last_id))
-        last_id = data[-1][0]+1
+        last_id += len(data)
+    return pd.DataFrame(data, columns=list_features)
 
 
 def plot_statistics(df):
@@ -209,9 +217,8 @@ def plot_statistics(df):
     plt.show()
 
 
-def main_data_gen():
+def main_data_gen(alg_name: str = 'kk'):
     list_features = all_features
-    alg_name = 'fa2'
     draw_f = algo_dict[alg_name]
     df = generate_df(list_features, draw_f)
     filename = 'graph_train_experiment_'+alg_name
@@ -221,4 +228,5 @@ def main_data_gen():
 
 if __name__ == "__main__":
    # stuff only to run when not called via 'import' here
-   main_data_gen()
+   main_data_gen('kk')
+   main_data_gen('fa2')

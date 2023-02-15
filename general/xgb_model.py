@@ -95,7 +95,6 @@ def evaluate_accuracy(yn_test: np.array, yn_res: np.array):
     Returns:
         [f1_score,accuracy]
     """
-    pos = np.sum([1 if y == 1 else 0 for y in yn_test])
     f1 = f1_score(yn_test, yn_res)
     acc = (sum([1 if yn_test[i] == yn_res[i]
            else 0 for i in range(len(yn_res))]))/len(yn_test)
