@@ -208,6 +208,8 @@ def eval(model: XGBClassifier, df: pd.Dataframe, graphid2src: dict, method, resu
 
     # Iterate over all graphs
     for graphid, src in tqdm(graphid2src.items()):
+        if graphid not in df['graphid'].unique():
+            continue
         print(f"Processing graph {graphid}")
         g = src
         data = df[df['graphid'] == graphid]
