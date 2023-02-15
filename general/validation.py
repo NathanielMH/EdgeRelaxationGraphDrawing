@@ -56,9 +56,9 @@ def relax_one(graph: nx.Graph, draw_f: callable[np.array], model: XGBClassifier,
     proba = make_predictions(model, X, ret_proba = True)
 
     max_proba_idx = np.argmax(proba)
-    max_proba_edge = list(g.edges)[max_proba_idx]
+    max_proba_edge = list(graph.edges)[max_proba_idx]
 
-    g2 = g.copy()
+    g2 = graph.copy()
     g2.remove_edges_from([max_proba_edge])
     
     pos = draw_f(g2, pos=draw_f(graph))
@@ -82,9 +82,9 @@ def just_relax(graph: nx.Graph, draw_f: callable[np.array], model: XGBClassifier
     proba = make_predictions(model, X, ret_proba = True)
 
     selected_idxs = np.where(proba>0.5)
-    selected_edges = [list(g.edges)[idx] for idx in selected_idxs]
+    selected_edges = [list(graph.edges)[idx] for idx in selected_idxs]
 
-    g2 = g.copy()
+    g2 = graph.copy()
     g2.remove_edges_from(selected_edges)
     
     pos = draw_f(g2, pos=draw_f(graph))
@@ -92,7 +92,7 @@ def just_relax(graph: nx.Graph, draw_f: callable[np.array], model: XGBClassifier
     return pos
 
 
-def relax_block(graph: nx.Graph, draw_f: callable[np.array], model: XGBClassifier, data: pd.DataFrame = None, k: int = 3):
+def relax_block(graph: nx.Graph, draw_f: callable[np.array], model: XGBClassifier, data: pd.DataFrame = None, depth_limit: int = 3):
     """Relax 1 edge -> block near edges -> relax 1 edge -> block near edges -> ... 
     
     Args:
@@ -117,17 +117,17 @@ def relax_block(graph: nx.Graph, draw_f: callable[np.array], model: XGBClassifie
 
     while diff_crossings < 0:
         max_proba_idx = np.argmax(proba)
-        max_proba_edge = list(g.edges)[max_proba_idx]
+        max_proba_edge = list(graph.edges)[max_proba_idx]
         relaxed_edges.append(max_proba_edge)
         
-        edges2block = bfs_on_edges(g, max_proba_edge, depth_limit)
+        edges2block = bfs_on_edges(graph, max_proba_edge, depth_limit)
 
         for e in [max_proba_edge, *edges2block]:
             proba[e] = -1
 
         g2.remove_edges_from([max_proba_edge])
 
-        diff_crossings = compareGraphs(g, g, draw_f(g), draw_f(g2), show=False)[0]
+        diff_crossings = compareGraphs(graph, graph, draw_f(graph), draw_f(g2), show=False)[0]
         diff_crossings_hist.append(diff_crossings)
     
     min_crossings_idx = np.argmin(diff_crossings_hist)
