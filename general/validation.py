@@ -51,6 +51,8 @@ def relax_one(graph: nx.Graph, draw_f: callable[np.array], model: XGBClassifier,
     Returns:
         pos (dict): final positions of the nodes
     """
+    if data is None:
+        data = graph_to_df(graph,0,draw_f,bench='Test')
 
     X, y = preprocess_data(data)
     proba = make_predictions(model, X, ret_proba = True)
@@ -77,6 +79,8 @@ def just_relax(graph: nx.Graph, draw_f: callable[np.array], model: XGBClassifier
     Returns:
         pos (dict): final positions of the nodes
     """
+    if data is None:
+        data = graph_to_df(graph,0,draw_f,bench='Test')
 
     X, y = preprocess_data(data)
     proba = make_predictions(model, X, ret_proba = True)
@@ -105,6 +109,8 @@ def relax_block(graph: nx.Graph, draw_f: callable[np.array], model: XGBClassifie
     Returns:
         pos (dict): final positions of the nodes
     """
+    if data is None:
+        data = graph_to_df(graph,0,draw_f,bench='Test')
 
     X, y = preprocess_data(data)
     proba = make_predictions(model, X, ret_proba = True)
