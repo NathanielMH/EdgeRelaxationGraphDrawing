@@ -61,10 +61,10 @@ def relax_one(graph: nx.Graph, draw_f, model: XGBClassifier, data: pd.DataFrame 
         pos (dict): final positions of the nodes
     """
     if data is None:
-        data = graph_to_df(graph,0,draw_f,bench='Test')
+        data = graph_to_df(graph,0,draw_f,bench='Test',include_labels=False)
 
-    X, y = preprocess_data(data)
-    proba = make_predictions(model, X, ret_proba = True)
+    X, y = preprocess_data(data, include_labels=False)
+    proba = make_predictions(model, X)
 
     max_proba_idx = np.argmax(proba)
     max_proba_edge = list(graph.edges)[max_proba_idx]
@@ -75,7 +75,7 @@ def relax_one(graph: nx.Graph, draw_f, model: XGBClassifier, data: pd.DataFrame 
     pos = draw_f(g2, pos=draw_f(graph))
     return pos
 
-def just_relax(graph: nx.Graph, draw_f: callable[np.array], model: XGBClassifier, data: pd.DataFrame = None, thresh: float = 0.5) -> dict:
+def just_relax(graph: nx.Graph, draw_f, model: XGBClassifier, data: pd.DataFrame = None, thresh: float = 0.5) -> dict:
     """Relax all edges with prob > thresh
     
     Args:
@@ -89,10 +89,10 @@ def just_relax(graph: nx.Graph, draw_f: callable[np.array], model: XGBClassifier
         pos (dict): final positions of the nodes
     """
     if data is None:
-        data = graph_to_df(graph,0,draw_f,bench='Test')
+        data = graph_to_df(graph,0,draw_f,bench='Test', include_labels=False)
 
-    X, y = preprocess_data(data)
-    proba = make_predictions(model, X, ret_proba = True)
+    X = preprocess_data(data,include_labels=False)
+    proba = make_predictions(model, X)
 
     selected_idxs = np.where(proba>0.5)
     selected_edges = [list(graph.edges)[idx] for idx in selected_idxs]
@@ -105,7 +105,7 @@ def just_relax(graph: nx.Graph, draw_f: callable[np.array], model: XGBClassifier
     return pos
 
 
-def relax_block(graph: nx.Graph, draw_f: callable[np.array], model: XGBClassifier, data: pd.DataFrame = None, depth_limit: int = 3) -> dict:
+def relax_block(graph: nx.Graph, draw_f, model: XGBClassifier, data: pd.DataFrame = None, depth_limit: int = 3) -> dict:
     """Relax 1 edge -> block near edges -> relax 1 edge -> block near edges -> ... 
     
     Args:
@@ -119,10 +119,10 @@ def relax_block(graph: nx.Graph, draw_f: callable[np.array], model: XGBClassifie
         pos (dict): final positions of the nodes
     """
     if data is None:
-        data = graph_to_df(graph,0,draw_f,bench='Test')
+        data = graph_to_df(graph,0,draw_f,bench='Test', include_labels=False)
 
-    X, y = preprocess_data(data)
-    proba = make_predictions(model, X, ret_proba = True)
+    X = preprocess_data(data,include_labels=False)
+    proba = make_predictions(model, X)
 
     diff_crossings = -1
     relaxed_edges = []
@@ -155,7 +155,7 @@ def relax_block(graph: nx.Graph, draw_f: callable[np.array], model: XGBClassifie
 
     return pos
 
-def relax_and_recompute(graph: nx.Graph, draw_f: callable[np.array], model: XGBClassifier, data: pd.DataFrame = None, k: int = 3) -> dict:
+def relax_and_recompute(graph: nx.Graph, draw_f, model: XGBClassifier, data: pd.DataFrame = None, k: int = 3) -> dict:
     """Relax 1 edge -> recompute -> relax 1 edge -> recompute -> ... k times
     
     Args:
@@ -169,10 +169,10 @@ def relax_and_recompute(graph: nx.Graph, draw_f: callable[np.array], model: XGBC
         pos (dict): final positions of the nodes
     """
     if data is None:
-        data = graph_to_df(graph,0,draw_f,bench='Test')
+        data = graph_to_df(graph,0,draw_f,bench='Test', include_labels=True)
     
-    X,y = preprocess_data(data)
-    proba = make_predictions(model,X,ret_proba=True)
+    X = preprocess_data(data,return_labels=False,drop_labels=True)
+    proba = make_predictions(model,X)
     removed_edges = []
     pos0 = draw_f(graph)
     pos1 = pos0
@@ -185,14 +185,15 @@ def relax_and_recompute(graph: nx.Graph, draw_f: callable[np.array], model: XGBC
         g2.remove_edges_from([max_proba_edge])
         pos1 = draw_f(g2,pos=pos1)
 
-        data = graph_to_df(g2,0,draw_f,bench='Test')
-        proba = make_predictions(model,data,ret_proba=True)
+        data = graph_to_df(g2,0,draw_f,bench='Test',include_labels=False)
+        X = preprocess_data(data,return_labels=False,drop_labels=False)
+        proba = make_predictions(model,X)
     return pos1
 #####
 # Evaluation functions 
 #####
 
-def eval(model: XGBClassifier, df: pd.Dataframe, graphid2src: dict, method, results_file: str, draw_f, method_name:str,**kwargs) -> None:
+def eval(model: XGBClassifier, df: pd.DataFrame, graphid2src: dict, method, results_file: str, draw_f, method_name:str,**kwargs) -> None:
     """Evaluate the given method with the given model on the given graphs
     
     Args:
@@ -217,11 +218,11 @@ def eval(model: XGBClassifier, df: pd.Dataframe, graphid2src: dict, method, resu
 
     # Iterate over all graphs
     for graphid, src in tqdm(graphid2src.items()):
-        if graphid not in df['graphid'].unique():
+        if graphid not in df['graph_id'].unique():
             continue
         print(f"Processing graph {graphid}")
         g = src
-        data = df[df['graphid'] == graphid]
+        data = df[df['graph_id'] == graphid]
         pos0 = draw_f(g)
         if method_name == 'relax_one':
             pos1 = method(g, draw_f, model, data)
@@ -259,12 +260,13 @@ def eval(model: XGBClassifier, df: pd.Dataframe, graphid2src: dict, method, resu
 
 
 def main(alg_name: str = 'kk'):
-    xgb_model = xgb.Booster()
-    model = xgb_model.load_model('model_'+alg_name+'.bin')
-    df = pd.read_csv('graph_train_experiment_'+alg_name+'.csv')
-    graphid2src = pickle.dump('idToGraph.pickle')
+    model = xgb.XGBClassifier()
+    model.load_model('../data/xgb_'+alg_name+'.bin')
+    df = pd.read_csv('../data/graph_train_experiment_'+alg_name+'.csv')
+    with open('../data/idToGraph.pickle', 'rb') as f:
+        graphid2src = pickle.load(f)
     draw_f = algo_dict[alg_name]
-    eval(model, df, graphid2src, relax_and_recompute, 'first_analysis.txt', draw_f, 'relax_and_recompute', depth_limit=2)
+    eval(model, df, graphid2src, relax_and_recompute, 'first_analysis.txt', draw_f, 'relax_and_recompute', k=2)
 
 if __name__ == '__main__':
     main('kk')

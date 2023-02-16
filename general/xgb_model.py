@@ -22,7 +22,7 @@ params = {
 }
 
 
-def preprocess_data(df2: pd.DataFrame):
+def preprocess_data(df2: pd.DataFrame, return_labels: bool = True, drop_labels: bool = True):
     """Preprocesses data for XGBoost.
 
     Args:
@@ -33,12 +33,21 @@ def preprocess_data(df2: pd.DataFrame):
         yn (np.array): Array of labels.
     """
     df2['is_bridge'] = df2['is_bridge'].astype(float)
-    yn = (df2['edge_cross_norm'] > 0).to_numpy(dtype=int)
-    df2 = df2.drop(labels=['edge_cross_norm', 'edge_id', 'graph_id', 'num_nodes', 'num_edges',
-                           'benchmark', 'max_deg', 'min_deg', 'diff_cross', 'is_bridge'], axis=1)
+    if return_labels:
+        yn = (df2['edge_cross_norm'] > 0).to_numpy(dtype=int)
+    
+    if drop_labels:
+        df2 = df2.drop(labels = ['edge_cross_norm','diff_cross'])
+        
+    df2 = df2.drop(labels=['edge_id', 'graph_id', 'num_nodes', 'num_edges',
+                           'benchmark', 'max_deg', 'min_deg', 'is_bridge'], axis=1)
 
     Xn = df2.to_numpy(dtype=float)
-    return Xn, yn
+
+    if return_labels:
+        return Xn, yn
+
+    return Xn
 
 
 def perform_grid_search(xgb: XGBClassifier, X_train: np.array, y_train: np.array, params_grid: dict = params, njobs: int = 4, folds: int = 3):

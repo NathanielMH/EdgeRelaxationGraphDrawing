@@ -29,7 +29,7 @@ all_features = ['graph_id', 'edge_id', 'num_nodes', 'num_edges', 'edge_betweenne
                 'benchmark', 'exp_factor_norm', 'edge_cross_norm', 'sum_neighbour_deg_norm', 'max_neighbour_deg_norm', 'max_jnc', 'sum_jnc', 'diff_graph_entropy_norm','grad_diff']
 
 
-def draw_fa2(g,pos):
+def draw_fa2(g,pos=None):
     """
     Draw graph using ForceAtlas2 algorithm given optional initial positions
 
@@ -47,7 +47,7 @@ def draw_fa2(g,pos):
     return posTuple
 
 
-def draw_kk(g,pos):
+def draw_kk(g,pos=None):
     """
     Draw graph using Kamada-Kawai algorithm given optional initial positions
 
@@ -80,7 +80,7 @@ def read_list_of_graphs(dir_name, ext):
 
 
 
-def graph_to_df(graph: nx.Graph, idx_graph:int, draw_f,bench:str,list_features:list=all_features, return_df: bool=True) -> pd.DataFrame or list:
+def graph_to_df(graph: nx.Graph, idx_graph:int, draw_f,bench:str,list_features:list=all_features, return_df: bool=True, include_labels:bool=True) -> pd.DataFrame or list:
     """
     Convert a graph to a dataframe with the specified features
 
@@ -100,8 +100,10 @@ def graph_to_df(graph: nx.Graph, idx_graph:int, draw_f,bench:str,list_features:l
 
     #  Compute general graph attributes
     eb = nx.edge_betweenness(graph)     # edge betweenness
-    st = stress(graph, pos0)             # stress
-    cross0 = num_crossings(graph, pos0)
+    st = stress(graph, pos0)
+    cross0 = 0            
+    if include_labels:
+        cross0 = num_crossings(graph, pos0)
     edgel0 = mean_edge_length(graph, pos0)
     total_stress0 = total_stress(graph, pos0)
     deg = nx.degree(graph, graph.nodes)
@@ -120,13 +122,16 @@ def graph_to_df(graph: nx.Graph, idx_graph:int, draw_f,bench:str,list_features:l
         graph_copy.remove_edges_from([e])
         pos1 = draw_f(graph_copy, pos=pos0)
         pos1_arr = nodes_dict_to_array(pos1)
-
-        cross1 = num_crossings(graph, pos1)
+        cross1 = 0
+        if include_labels:
+            cross1 = num_crossings(graph, pos1)
         edgel1 = mean_edge_length(graph, pos1)
         total_stress1 = total_stress(graph, pos1)
         deg = nx.degree(graph, graph.nodes)
         exp_factor_norm = expansion_factor_norm(pos0_arr, pos1_arr)
-        edge_cross_norm = edge_crossings_norm(
+        edge_cross_norm = 0
+        if include_labels:
+            edge_cross_norm = edge_crossings_norm(
             cross0-cross1, len(graph_copy.edges))
         d1 = distance_matrix(graph_copy)
         grad_diff = np.linalg.norm(gradient_kamada_kawai(
@@ -147,7 +152,11 @@ def graph_to_df(graph: nx.Graph, idx_graph:int, draw_f,bench:str,list_features:l
         row = []
         for feature in list_features:
             if feature in feature_to_var.keys():
-                row.append(feature_to_var[feature])
+                if feature =='edge_cross_norm' or feature == 'diff_cross':
+                    if include_labels:
+                        row.append(feature_to_var[feature])
+                else:
+                    row.append(feature_to_var[feature])
             else:
                 print('Feature not included ', feature)
         
