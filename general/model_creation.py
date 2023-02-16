@@ -24,10 +24,10 @@ DRAW_FS = {
     'fa2': fa2.forceatlas2_networkx_layout
 }
 
-@click.command()
-@click.option('-r', '--res', 'results_file', type=click.Path(writable=True), prompt='Saving results in', default='results.txt', help='Path to save results.')
-@click.option('-i', '--ignore_feat', 'unwanted_features', help='Features to ignore.', type=str, multiple=True)
-@click.option('-a', '--alg', 'algo_name', type=click.Choice(['kk', 'fa2'], case_sensitive=False), help="Drawing algorithm to use")
+#@click.command()
+#@click.option('-r', '--res', 'results_file', type=click.Path(writable=True), prompt='Saving results in', default='results.txt', help='Path to save results.')
+#@click.option('-i', '--ignore_feat', 'unwanted_features', help='Features to ignore.', type=str, multiple=True)
+#@click.option('-a', '--alg', 'algo_name', type=click.Choice(['kk', 'fa2'], case_sensitive=False), help="Drawing algorithm to use")
 
 def perform_experiment_model(results_file: str, unwanted_features: list, algo_name: str):
     """Runs the experiments of Edge Relaxation Graph Drawing."""
@@ -45,7 +45,7 @@ def perform_experiment_model(results_file: str, unwanted_features: list, algo_na
     xgb = XGBClassifier(learning_rate=0.02, n_estimators=600,
                         objective='binary:logistic', silent=True, nthread=1)
     xgb.fit(Xn_train, yn_train)
-    xgb.save_model(f'../data/xgb_{algo_name}.model')
+    xgb.save_model(f'../data/xgb_{algo_name}.bin')
     # Evaluate the model and save the results in results_file
     y_res = make_predictions(xgb, Xn_test)
     f1, acc = evaluate_accuracy(yn_test, y_res)
@@ -66,4 +66,5 @@ def perform_experiment_model(results_file: str, unwanted_features: list, algo_na
 
 #perform_experiment('results_experiment_fa2.txt', [], 'fa2')
 if __name__ == '__main__':
-    perform_experiment_model()
+    perform_experiment_model('results_model_fa2.txt', [], 'fa2')
+    perform_experiment_model('results_model_kk.txt', [], 'kk')

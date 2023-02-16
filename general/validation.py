@@ -1,9 +1,18 @@
+import sys
+import os
+
+module_path = os.path.abspath(os.path.join('..'))
+if module_path not in sys.path:
+    sys.path.append(module_path)
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from xgboost import XGBClassifier
 from tqdm import tqdm
 import networkx as nx
+import xgboost as xgb
+import pickle
 
 from xgb_model import preprocess_data, make_predictions
 from src.graph_utils import compareGraphs, quality_measures
@@ -13,8 +22,7 @@ from general.data_generation import graph_to_df, draw_fa2, draw_kk
 
 # Have compare Graph output write the result in a file instead of showing it.
 
-classifier = XGBClassifier()
-classifier.load_model('xgb.bin')
+algo_dict = {'fa2': draw_fa2, 'kk': draw_kk}
 
 #####
 # Auxiliary functions 
@@ -39,7 +47,8 @@ def bfs_on_edges(g: nx.Graph, edge: list or tuple, depth_limit) -> list:
 #####
 # Drawing functions 
 #####
-def relax_one(graph: nx.Graph, draw_f: callable[np.array], model: XGBClassifier, data: pd.DataFrame = None, thresh: float = 0.5):
+
+def relax_one(graph: nx.Graph, draw_f, model: XGBClassifier, data: pd.DataFrame = None, thresh: float = 0.5) -> dict:
     """Relax only best edge
     
     Args:
@@ -66,7 +75,7 @@ def relax_one(graph: nx.Graph, draw_f: callable[np.array], model: XGBClassifier,
     pos = draw_f(g2, pos=draw_f(graph))
     return pos
 
-def just_relax(graph: nx.Graph, draw_f: callable[np.array], model: XGBClassifier, data: pd.DataFrame = None, thresh: float = 0.5):
+def just_relax(graph: nx.Graph, draw_f: callable[np.array], model: XGBClassifier, data: pd.DataFrame = None, thresh: float = 0.5) -> dict:
     """Relax all edges with prob > thresh
     
     Args:
@@ -96,7 +105,7 @@ def just_relax(graph: nx.Graph, draw_f: callable[np.array], model: XGBClassifier
     return pos
 
 
-def relax_block(graph: nx.Graph, draw_f: callable[np.array], model: XGBClassifier, data: pd.DataFrame = None, depth_limit: int = 3):
+def relax_block(graph: nx.Graph, draw_f: callable[np.array], model: XGBClassifier, data: pd.DataFrame = None, depth_limit: int = 3) -> dict:
     """Relax 1 edge -> block near edges -> relax 1 edge -> block near edges -> ... 
     
     Args:
@@ -146,7 +155,7 @@ def relax_block(graph: nx.Graph, draw_f: callable[np.array], model: XGBClassifie
 
     return pos
 
-def relax_and_recompute(graph: nx.Graph, draw_f: callable[np.array], model: XGBClassifier, data: pd.DataFrame = None, k: int = 3):
+def relax_and_recompute(graph: nx.Graph, draw_f: callable[np.array], model: XGBClassifier, data: pd.DataFrame = None, k: int = 3) -> dict:
     """Relax 1 edge -> recompute -> relax 1 edge -> recompute -> ... k times
     
     Args:
@@ -183,7 +192,7 @@ def relax_and_recompute(graph: nx.Graph, draw_f: callable[np.array], model: XGBC
 # Evaluation functions 
 #####
 
-def eval(model: XGBClassifier, df: pd.Dataframe, graphid2src: dict, method, results_file: str, draw_f, method_name:str,**kwargs):
+def eval(model: XGBClassifier, df: pd.Dataframe, graphid2src: dict, method, results_file: str, draw_f, method_name:str,**kwargs) -> None:
     """Evaluate the given method with the given model on the given graphs
     
     Args:
@@ -249,4 +258,14 @@ def eval(model: XGBClassifier, df: pd.Dataframe, graphid2src: dict, method, resu
             Average of edge cross reduction: {average_edge_cross_reduction} \n")
 
 
+def main(alg_name: str = 'kk'):
+    xgb_model = xgb.Booster()
+    model = xgb_model.load_model('model_'+alg_name+'.bin')
+    df = pd.read_csv('graph_train_experiment_'+alg_name+'.csv')
+    graphid2src = pickle.dump('idToGraph.pickle')
+    draw_f = algo_dict[alg_name]
+    eval(model, df, graphid2src, relax_and_recompute, 'first_analysis.txt', draw_f, 'relax_and_recompute', depth_limit=2)
 
+if __name__ == '__main__':
+    main('kk')
+    main('fa2')
