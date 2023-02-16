@@ -190,7 +190,7 @@ def generate_df(list_features: list, draw_f):
         list_graphs = read_list_of_graphs(f'../data/{bench}/', 'graphml')
         data.extend(generate_data_from_list(
             list_graphs, bench, list_features, draw_f, last_id))
-        last_id += len(data)
+        last_id = data[-1][0]+1
     return pd.DataFrame(data, columns=list_features)
 
 
