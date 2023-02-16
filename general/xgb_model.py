@@ -22,7 +22,7 @@ params = {
 }
 
 
-def preprocess_data(df2: pd.DataFrame, return_labels: bool = True, drop_labels: bool = True):
+def preprocess_data(df: pd.DataFrame, return_labels: bool = True, drop_labels: bool = True):
     """Preprocesses data for XGBoost.
 
     Args:
@@ -32,17 +32,17 @@ def preprocess_data(df2: pd.DataFrame, return_labels: bool = True, drop_labels: 
         Xn (np.array): Array of features.
         yn (np.array): Array of labels.
     """
-    df2['is_bridge'] = df2['is_bridge'].astype(float)
+    df['is_bridge'] = df['is_bridge'].astype(float)
     if return_labels:
-        yn = (df2['edge_cross_norm'] > 0).to_numpy(dtype=int)
-    
+        yn = (df['edge_cross_norm'] > 0).to_numpy(dtype=int)
+
     if drop_labels:
-        df2 = df2.drop(labels = ['edge_cross_norm','diff_cross'])
+        df = df.drop(labels=['edge_cross_norm','diff_cross'],axis=1)
         
-    df2 = df2.drop(labels=['edge_id', 'graph_id', 'num_nodes', 'num_edges',
+    df = df.drop(labels=['edge_id', 'graph_id', 'num_nodes', 'num_edges',
                            'benchmark', 'max_deg', 'min_deg', 'is_bridge'], axis=1)
 
-    Xn = df2.to_numpy(dtype=float)
+    Xn = df.to_numpy(dtype=float)
 
     if return_labels:
         return Xn, yn

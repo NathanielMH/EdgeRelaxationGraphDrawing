@@ -62,8 +62,9 @@ def relax_one(graph: nx.Graph, draw_f, model: XGBClassifier, data: pd.DataFrame 
     """
     if data is None:
         data = graph_to_df(graph,0,draw_f,bench='Test',include_labels=False)
-
-    X, y = preprocess_data(data, include_labels=False)
+        X = preprocess_data(data, return_labels=False, drop_labels=False)
+    else:
+        X = preprocess_data(data, return_labels=False, drop_labels=True)
     proba = make_predictions(model, X)
 
     max_proba_idx = np.argmax(proba)
@@ -90,8 +91,9 @@ def just_relax(graph: nx.Graph, draw_f, model: XGBClassifier, data: pd.DataFrame
     """
     if data is None:
         data = graph_to_df(graph,0,draw_f,bench='Test', include_labels=False)
-
-    X = preprocess_data(data,include_labels=False)
+        X = preprocess_data(data,return_labels=False,drop_labels=False)
+    else:
+        X = preprocess_data(data,return_labels=False,drop_labels=True)
     proba = make_predictions(model, X)
 
     selected_idxs = np.where(proba>0.5)
@@ -120,8 +122,9 @@ def relax_block(graph: nx.Graph, draw_f, model: XGBClassifier, data: pd.DataFram
     """
     if data is None:
         data = graph_to_df(graph,0,draw_f,bench='Test', include_labels=False)
-
-    X = preprocess_data(data,include_labels=False)
+        X = preprocess_data(data,return_labels=False,drop_labels=False)
+    else:
+        X = preprocess_data(data,return_labels=False,drop_labels=True)
     proba = make_predictions(model, X)
 
     diff_crossings = -1
@@ -169,9 +172,10 @@ def relax_and_recompute(graph: nx.Graph, draw_f, model: XGBClassifier, data: pd.
         pos (dict): final positions of the nodes
     """
     if data is None:
-        data = graph_to_df(graph,0,draw_f,bench='Test', include_labels=True)
-    
-    X = preprocess_data(data,return_labels=False,drop_labels=True)
+        data = graph_to_df(graph,0,draw_f,bench='Test', include_labels=False)
+        X = preprocess_data(data,return_labels=False,drop_labels=False)
+    else:
+        X = preprocess_data(data,return_labels=False,drop_labels=True)
     proba = make_predictions(model,X)
     removed_edges = []
     pos0 = draw_f(graph)
@@ -217,11 +221,11 @@ def eval(model: XGBClassifier, df: pd.DataFrame, graphid2src: dict, method, resu
     average_edge_cross_reduction = 0.
 
     # Iterate over all graphs
-    for graphid, src in tqdm(graphid2src.items()):
-        if graphid not in df['graph_id'].unique():
+    id_list = df['graph_id'].unique()
+    for graphid, g in tqdm(graphid2src.items()):
+        if graphid not in id_list:
             continue
         print(f"Processing graph {graphid}")
-        g = src
         data = df[df['graph_id'] == graphid]
         pos0 = draw_f(g)
         if method_name == 'relax_one':
@@ -266,7 +270,7 @@ def main(alg_name: str = 'kk'):
     with open('../data/idToGraph.pickle', 'rb') as f:
         graphid2src = pickle.load(f)
     draw_f = algo_dict[alg_name]
-    eval(model, df, graphid2src, relax_and_recompute, 'first_analysis.txt', draw_f, 'relax_and_recompute', k=2)
+    eval(model, df, graphid2src, relax_and_recompute, 'first_analysis.txt', draw_f, 'relax_block', depth_limit=2)
 
 if __name__ == '__main__':
     main('kk')

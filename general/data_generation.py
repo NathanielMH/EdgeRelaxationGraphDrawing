@@ -163,7 +163,11 @@ def graph_to_df(graph: nx.Graph, idx_graph:int, draw_f,bench:str,list_features:l
         data.append(row)
 
     if return_df:
-        return pd.DataFrame(data, columns=list_features)
+        if not include_labels:
+            cols = list_features.copy()
+            cols.remove('edge_cross_norm')
+            cols.remove('diff_cross')
+        return pd.DataFrame(data, columns=cols)
     else:
         return data
 
