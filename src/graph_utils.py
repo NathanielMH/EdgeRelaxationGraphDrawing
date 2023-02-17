@@ -755,7 +755,7 @@ def max_j_node_centrality(G: nx.Graph, layout: np.array, e, numIterations: int =
     return max(j_node_centrality(G, layout, numIterations, u), j_node_centrality(G, layout, numIterations, v))
 
 
-def sum_j_node_centrality(G: nx.Graph, layout: np.array, e, numIterations: int = 1000) -> float:
+def sum_j_node_centrality(G: nx.Graph, layout: np.array, e, numIterations: int = 100) -> float:
     """
     Computes sum of j_node_centralities of connecting nodes
 
