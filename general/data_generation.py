@@ -26,7 +26,7 @@ benchmarks = ['random-dag', 'rome', 'north']
 
 all_features = ['graph_id', 'edge_id', 'num_nodes', 'num_edges', 'edge_betweenness', 'stress', 'max_deg', 'min_deg', 'is_bridge',
                 'diff_stress', 'diff_cross', 'diff_edglength',
-                'benchmark', 'exp_factor_norm', 'edge_cross_norm', 'sum_neighbour_deg_norm', 'max_neighbour_deg_norm', 'max_jnc', 'sum_jnc', 'diff_graph_entropy_norm','grad_diff']
+                'benchmark', 'exp_factor_norm', 'edge_cross_norm', 'sum_neighbour_deg_norm', 'max_neighbour_deg_norm', 'diff_graph_entropy_norm','grad_diff']
 
 
 def draw_fa2(g,pos=None):
@@ -40,7 +40,7 @@ def draw_fa2(g,pos=None):
     Returns:
         dict: positions of nodes
     """
-    fa2 = ForceAtlas2()
+    fa2 = ForceAtlas2(verbose=False)
     posTuple = fa2.forceatlas2_networkx_layout(G=g, pos=pos, iterations=100)
     for x in posTuple.keys():
         posTuple[x] = np.array(posTuple[x])
@@ -141,14 +141,14 @@ def graph_to_df(graph: nx.Graph, idx_graph:int, draw_f,bench:str,list_features:l
         min_deg = min(deg[n1], deg[n2])
         sum_neighbour_deg_norm = sum_neighbour_degrees_norm(graph_copy, e)
         max_neighbour_deg_norm = max_neighbour_degrees_norm(graph_copy, e)
-        max_jnc = max_j_node_centrality(graph_copy, pos1_arr, e)
-        sum_jnc = sum_j_node_centrality(graph_copy, pos1_arr, e)
+        # max_jnc = max_j_node_centrality(graph_copy, pos1_arr, e)
+        # sum_jnc = sum_j_node_centrality(graph_copy, pos1_arr, e)
         nnodes, nedges = len(graph.nodes), len(graph.edges)
         graph_copy_entropy = graph_entropy_norm(graph_copy)
         
         feature_to_var = {'graph_id': idx_graph, 'edge_id': idx_edge, 'num_nodes': nnodes, 'num_edges': nedges, 'edge_betweenness': eb[e], 'stress': st[e], 'max_deg': max_deg, 'min_deg': min_deg, 'is_bridge': e in bridges,
                               'diff_stress': total_stress0 - total_stress1, 'diff_cross': cross0 - cross1, 'diff_edglength': edgel0 - edgel1,
-                              'benchmark': bench, 'exp_factor_norm': exp_factor_norm, 'edge_cross_norm': edge_cross_norm, 'sum_neighbour_deg_norm': sum_neighbour_deg_norm, 'max_neighbour_deg_norm': max_neighbour_deg_norm, 'max_jnc': max_jnc, 'sum_jnc': sum_jnc, 'diff_graph_entropy_norm': graph_copy_entropy-graph_entropy, 'grad_diff': grad_diff}
+                              'benchmark': bench, 'exp_factor_norm': exp_factor_norm, 'edge_cross_norm': edge_cross_norm, 'sum_neighbour_deg_norm': sum_neighbour_deg_norm, 'max_neighbour_deg_norm': max_neighbour_deg_norm, 'diff_graph_entropy_norm': graph_copy_entropy-graph_entropy, 'grad_diff': grad_diff}
         row = []
         for feature in list_features:
             if feature in feature_to_var.keys():
@@ -183,7 +183,8 @@ def generate_data_from_list(list_graphs: list, bench: str, list_features: list, 
         data (list): list of rows for df from list_graphs
     """
     data = []
-    for idx_graph, graph in enumerate(list_graphs[n:m]):
+    for idx_graph, graph in tqdm(list(enumerate(list_graphs[n:m]))):
+        # TODO: fer-ho menys cutre i ojo amb la n
         graph_data = graph_to_df(graph, idx_graph+idx_start, draw_f, bench,list_features, return_df=False)
         data.extend(graph_data)
 
@@ -203,7 +204,7 @@ def generate_df(list_features: list, draw_f):
         list_graphs = read_list_of_graphs(f'../data/{bench}/', 'graphml')
         data.extend(generate_data_from_list(
             list_graphs, bench, list_features, draw_f, last_id))
-        last_id = data[-1][0]+1
+        last_id += len(list_graphs)  # data[-1][0]+1
     return pd.DataFrame(data, columns=list_features)
 
 

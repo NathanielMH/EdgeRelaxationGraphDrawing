@@ -137,8 +137,8 @@ def relax_block(graph: nx.Graph, draw_f, model: XGBClassifier, data: pd.DataFram
     for idx, e in enumerate(graph.edges):
         edge2idx[e[::-1]] = idx
 
-    print(np.max(list(edge2idx.values())))
-    print(len(proba))
+    # print(np.max(list(edge2idx.values())))
+    # print(len(proba))
 
     for it in range(num_it):
         max_proba_idx = np.argmax(proba)
@@ -233,7 +233,6 @@ def eval(model: XGBClassifier, df: pd.DataFrame, graphid2src: dict, method, resu
     # Iterate over all graphs
     id_list = df['graph_id'].unique()
     for graphid, g in tqdm(graphid2src.items()):
-        print(graphid, g)
         if graphid not in id_list:
             continue
         #print(f"Processing graph {graphid}")
@@ -253,7 +252,8 @@ def eval(model: XGBClassifier, df: pd.DataFrame, graphid2src: dict, method, resu
         num_crossings1, aspect_ratio1, mean_crossing_angle1, _, _, _, _ = quality_measures(g, pos=pos1)
 
         # Compute the comparing metrics
-        average_percentage_edge_cross_reduction += (num_crossings0 - num_crossings1) / num_crossings0
+        if num_crossings0:
+            average_percentage_edge_cross_reduction += (num_crossings0 - num_crossings1) / num_crossings0
         average_edge_cross_angle_reduction += mean_crossing_angle0 - mean_crossing_angle1
         average_aspect_ratio_reduction += aspect_ratio0 - aspect_ratio1
         average_edge_cross_reduction += num_crossings0 - num_crossings1
