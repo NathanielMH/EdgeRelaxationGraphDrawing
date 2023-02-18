@@ -94,9 +94,9 @@ def just_relax(graph: nx.Graph, draw_f, model: XGBClassifier, data: pd.DataFrame
         X = preprocess_data(data,return_labels=False,drop_labels=False)
     else:
         X = preprocess_data(data,return_labels=False,drop_labels=True)
-    proba = make_predictions(model, X)
+    proba = np.array(make_predictions(model, X))
 
-    selected_idxs = np.where(proba>0.5)
+    selected_idxs = np.argwhere(proba>0.5).flatten()
     selected_edges = [list(graph.edges)[idx] for idx in selected_idxs]
 
     g2 = graph.copy()
@@ -107,7 +107,7 @@ def just_relax(graph: nx.Graph, draw_f, model: XGBClassifier, data: pd.DataFrame
     return pos
 
 
-def relax_block(graph: nx.Graph, draw_f, model: XGBClassifier, data: pd.DataFrame = None, depth_limit: int = 3) -> dict:
+def relax_block(graph: nx.Graph, draw_f, model: XGBClassifier, data: pd.DataFrame = None, depth_limit: int = 3, num_it = 5) -> dict:
     """Relax 1 edge -> block near edges -> relax 1 edge -> block near edges -> ... 
     
     Args:
@@ -125,7 +125,7 @@ def relax_block(graph: nx.Graph, draw_f, model: XGBClassifier, data: pd.DataFram
         X = preprocess_data(data,return_labels=False,drop_labels=False)
     else:
         X = preprocess_data(data,return_labels=False,drop_labels=True)
-    proba = make_predictions(model, X)
+    proba = np.array(make_predictions(model, X)).flatten()
 
     diff_crossings = -1
     relaxed_edges = []
@@ -133,14 +133,22 @@ def relax_block(graph: nx.Graph, draw_f, model: XGBClassifier, data: pd.DataFram
 
     g2 = graph.copy()
 
-    while diff_crossings < 0:
+    edge2idx = {e:idx for idx, e in enumerate(graph.edges)}
+    for idx, e in enumerate(graph.edges):
+        edge2idx[e[::-1]] = idx
+
+    print(np.max(list(edge2idx.values())))
+    print(len(proba))
+
+    for it in range(num_it):
         max_proba_idx = np.argmax(proba)
         max_proba_edge = list(graph.edges)[max_proba_idx]
         relaxed_edges.append(max_proba_edge)
         
         edges2block = bfs_on_edges(graph, max_proba_edge, depth_limit)
+        idxedges2block = [edge2idx[e] for e in edges2block]
 
-        for e in [max_proba_edge, *edges2block]:
+        for e in [max_proba_idx, *idxedges2block]:
             proba[e] = -1
 
         g2.remove_edges_from([max_proba_edge])
@@ -152,7 +160,7 @@ def relax_block(graph: nx.Graph, draw_f, model: XGBClassifier, data: pd.DataFram
 
     g2 = graph.copy()
 
-    g2.remove_edges_from([relaxed_edges[:min_crossings_idx]])
+    g2.remove_edges_from(relaxed_edges[:min_crossings_idx])
 
     pos = draw_f(g2, pos=draw_f(graph))
 
@@ -197,7 +205,7 @@ def relax_and_recompute(graph: nx.Graph, draw_f, model: XGBClassifier, data: pd.
 # Evaluation functions 
 #####
 
-def eval(model: XGBClassifier, df: pd.DataFrame, graphid2src: dict, method, results_file: str, draw_f, method_name:str,**kwargs) -> None:
+def eval(model: XGBClassifier, df: pd.DataFrame, graphid2src: dict, method, results_file: str, draw_f,**kwargs) -> None:
     """Evaluate the given method with the given model on the given graphs
     
     Args:
@@ -214,6 +222,8 @@ def eval(model: XGBClassifier, df: pd.DataFrame, graphid2src: dict, method, resu
         None
     """
 
+    method_name = method.__name__
+
     # Initialize quality measures
     average_percentage_edge_cross_reduction = 0.
     average_edge_cross_angle_reduction = 0.
@@ -223,9 +233,10 @@ def eval(model: XGBClassifier, df: pd.DataFrame, graphid2src: dict, method, resu
     # Iterate over all graphs
     id_list = df['graph_id'].unique()
     for graphid, g in tqdm(graphid2src.items()):
+        print(graphid, g)
         if graphid not in id_list:
             continue
-        print(f"Processing graph {graphid}")
+        #print(f"Processing graph {graphid}")
         data = df[df['graph_id'] == graphid]
         pos0 = draw_f(g)
         if method_name == 'relax_one':
@@ -270,7 +281,7 @@ def main(alg_name: str = 'kk'):
     with open('../data/idToGraph.pickle', 'rb') as f:
         graphid2src = pickle.load(f)
     draw_f = algo_dict[alg_name]
-    eval(model, df, graphid2src, relax_and_recompute, 'first_analysis.txt', draw_f, 'relax_block', depth_limit=2)
+    eval(model, df, graphid2src, relax_block, 'first_analysis.txt', draw_f, depth_limit=2)
 
 if __name__ == '__main__':
     main('kk')
