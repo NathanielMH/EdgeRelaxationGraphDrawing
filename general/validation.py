@@ -281,7 +281,7 @@ def main(alg_name: str = 'kk'):
     with open('../data/idToGraph.pickle', 'rb') as f:
         graphid2src = pickle.load(f)
     draw_f = algo_dict[alg_name]
-    eval(model, df, graphid2src, relax_block, 'first_analysis.txt', draw_f, depth_limit=2)
+    eval(model, df, graphid2src, relax_and_recompute, 'first_analysis_'+alg_name+'.txt', draw_f, k=2)
 
 if __name__ == '__main__':
     main('kk')

@@ -1,5 +1,0 @@
-Algorithm: kk 
-Unwanted features: () 
-F1 score: 0.5 
-Accuracy: 0.6666666666666666 
-----------------------------------------

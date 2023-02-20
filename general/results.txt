@@ -1,5 +1,0 @@
-Algorithm: fa2 
-Unwanted features: () 
-F1 score: 1.0 
-Accuracy: 1.0 
-----------------------------------------

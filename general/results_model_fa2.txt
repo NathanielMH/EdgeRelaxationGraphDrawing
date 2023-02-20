@@ -1,5 +1,7 @@
 Algorithm: fa2 
-Unwanted features: [] 
-F1 score: 0.8755020080321286 
-Accuracy: 0.87890625 
+Unwanted features: ['max_jnc', 'sum_jnc'] 
+F1 score: 0.8354430379746834 
+Accuracy: 0.84765625 
+Number of positive samples: 119 
+Total number of samples: 256 
 ----------------------------------------

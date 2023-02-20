@@ -1,5 +1,7 @@
 Algorithm: kk 
-Unwanted features: [] 
-F1 score: 0.563758389261745 
-Accuracy: 0.74609375 
+Unwanted features: ['max_jnc', 'sum_jnc'] 
+F1 score: 0.5196850393700787 
+Accuracy: 0.76171875 
+Number of positive samples: 70 
+Total number of samples: 256 
 ----------------------------------------

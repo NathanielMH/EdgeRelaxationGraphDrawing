@@ -49,11 +49,14 @@ def perform_experiment_model(results_file: str, unwanted_features: list, algo_na
     # Evaluate the model and save the results in results_file
     y_res = make_predictions(xgb, Xn_test)
     f1, acc = evaluate_accuracy(yn_test, y_res)
+    nPos = np.sum(yn_test)
     with open(results_file, 'w') as f:
         f.write(f'Algorithm: {algo_name} \n')
         f.write(f'Unwanted features: {unwanted_features} \n')
         f.write(f'F1 score: {f1} \n')
         f.write(f'Accuracy: {acc} \n')
+        f.write(f'Number of positive samples: {nPos} \n')
+        f.write(f'Total number of samples: {len(yn_test)} \n')
         f.write(f'----------------------------------------\n')
 
     # Evaluate the model used for drawing
@@ -66,5 +69,5 @@ def perform_experiment_model(results_file: str, unwanted_features: list, algo_na
 
 #perform_experiment('results_experiment_fa2.txt', [], 'fa2')
 if __name__ == '__main__':
-    perform_experiment_model('results_model_fa2.txt', [], 'fa2')
-    perform_experiment_model('results_model_kk.txt', [], 'kk')
+    perform_experiment_model('results_model_fa2.txt', ['max_jnc','sum_jnc'], 'fa2')
+    perform_experiment_model('results_model_kk.txt', ['max_jnc','sum_jnc'], 'kk')
