@@ -23,6 +23,7 @@ DRAW_FS = {
     'kk': nx.kamada_kawai_layout,
     'fa2': fa2.forceatlas2_networkx_layout
 }
+# Add spectral/FR
 
 #@click.command()
 #@click.option('-r', '--res', 'results_file', type=click.Path(writable=True), prompt='Saving results in', default='results.txt', help='Path to save results.')
