@@ -20,8 +20,8 @@ import pandas as pd
 
 # Generate Dataframe
 n = 0
-m = 5
-benchmarks = ['random-dag', 'rome', 'north']
+m = -1
+all_benchmarks = ['random-dag', 'rome', 'north']
 
 
 all_features = ['graph_id', 'edge_id', 'num_nodes', 'num_edges', 'edge_betweenness', 'stress', 'max_deg', 'min_deg', 'is_bridge',
@@ -93,83 +93,87 @@ def graph_to_df(graph: nx.Graph, idx_graph:int, draw_f,bench:str,list_features:l
         return_df (bool, optional): return dataframe or list of lists. Defaults to True.
 
     Returns:
-        pd.DataFrame or list: dataframe or list of lists with the specified features
+        pd.DataFrame or list: dataframe or list of lists with the specified features or None if something went wrong
     """
-    #  Run Spectral +  algorithm chosen
-    pos0 = draw_f(graph, pos=nx.spectral_layout(graph))
+    try:
+        #  Run Spectral +  algorithm chosen
+        pos0 = draw_f(graph, pos=nx.spectral_layout(graph))
 
-    #  Compute general graph attributes
-    eb = nx.edge_betweenness(graph)     # edge betweenness
-    st = stress(graph, pos0)
-    cross0 = 0            
-    if include_labels:
-        cross0 = num_crossings(graph, pos0)
-    edgel0 = mean_edge_length(graph, pos0)
-    total_stress0 = total_stress(graph, pos0)
-    deg = nx.degree(graph, graph.nodes)
-    bridges = nx.bridges(graph)
-    d0 = distance_matrix(graph)
-    graph_entropy = graph_entropy_norm(graph)
-    pos0_arr = nodes_dict_to_array(pos0)
-
-    data = []
-    for idx_edge, e in enumerate(graph.edges):
-
-        n1, n2 = e
-
-        # New position removing edge
-        graph_copy = graph.copy()
-        graph_copy.remove_edges_from([e])
-        pos1 = draw_f(graph_copy, pos=pos0)
-        pos1_arr = nodes_dict_to_array(pos1)
-        cross1 = 0
+        #  Compute general graph attributes
+        eb = nx.edge_betweenness(graph)     # edge betweenness
+        st = stress(graph, pos0)
+        cross0 = 0
         if include_labels:
-            cross1 = num_crossings(graph, pos1)
-        edgel1 = mean_edge_length(graph, pos1)
-        total_stress1 = total_stress(graph, pos1)
+            cross0 = num_crossings(graph, pos0)
+        edgel0 = mean_edge_length(graph, pos0)
+        total_stress0 = total_stress(graph, pos0)
         deg = nx.degree(graph, graph.nodes)
-        exp_factor_norm = expansion_factor_norm(pos0_arr, pos1_arr)
-        edge_cross_norm = 0
-        if include_labels:
-            edge_cross_norm = edge_crossings_norm(
-            cross0-cross1, len(graph_copy.edges))
-        d1 = distance_matrix(graph_copy)
-        grad_diff = np.linalg.norm(gradient_kamada_kawai(
-            pos0_arr, d0)-gradient_kamada_kawai(pos1_arr, d1))
-        # Extra attributes
-        max_deg = max(deg[n1], deg[n2])
-        min_deg = min(deg[n1], deg[n2])
-        sum_neighbour_deg_norm = sum_neighbour_degrees_norm(graph_copy, e)
-        max_neighbour_deg_norm = max_neighbour_degrees_norm(graph_copy, e)
-        # max_jnc = max_j_node_centrality(graph_copy, pos1_arr, e)
-        # sum_jnc = sum_j_node_centrality(graph_copy, pos1_arr, e)
-        nnodes, nedges = len(graph.nodes), len(graph.edges)
-        graph_copy_entropy = graph_entropy_norm(graph_copy)
-        
-        feature_to_var = {'graph_id': idx_graph, 'edge_id': idx_edge, 'num_nodes': nnodes, 'num_edges': nedges, 'edge_betweenness': eb[e], 'stress': st[e], 'max_deg': max_deg, 'min_deg': min_deg, 'is_bridge': e in bridges,
-                              'diff_stress': total_stress0 - total_stress1, 'diff_cross': cross0 - cross1, 'diff_edglength': edgel0 - edgel1,
-                              'benchmark': bench, 'exp_factor_norm': exp_factor_norm, 'edge_cross_norm': edge_cross_norm, 'sum_neighbour_deg_norm': sum_neighbour_deg_norm, 'max_neighbour_deg_norm': max_neighbour_deg_norm, 'diff_graph_entropy_norm': graph_copy_entropy-graph_entropy, 'grad_diff': grad_diff}
-        row = []
-        for feature in list_features:
-            if feature in feature_to_var.keys():
-                if feature =='edge_cross_norm' or feature == 'diff_cross':
-                    if include_labels:
+        bridges = nx.bridges(graph)
+        d0 = distance_matrix(graph)
+        graph_entropy = graph_entropy_norm(graph)
+        pos0_arr = nodes_dict_to_array(pos0)
+
+        data = []
+        for idx_edge, e in enumerate(graph.edges):
+
+            n1, n2 = e
+
+            # New position removing edge
+            graph_copy = graph.copy()
+            graph_copy.remove_edges_from([e])
+            pos1 = draw_f(graph_copy, pos=pos0)
+            pos1_arr = nodes_dict_to_array(pos1)
+            cross1 = 0
+            if include_labels:
+                cross1 = num_crossings(graph, pos1)
+            edgel1 = mean_edge_length(graph, pos1)
+            total_stress1 = total_stress(graph, pos1)
+            deg = nx.degree(graph, graph.nodes)
+            exp_factor_norm = expansion_factor_norm(pos0_arr, pos1_arr)
+            edge_cross_norm = 0
+            if include_labels:
+                edge_cross_norm = edge_crossings_norm(
+                cross0-cross1, len(graph_copy.edges))
+            d1 = distance_matrix(graph_copy)
+            grad_diff = np.linalg.norm(gradient_kamada_kawai(
+                pos0_arr, d0)-gradient_kamada_kawai(pos1_arr, d1))
+            # Extra attributes
+            max_deg = max(deg[n1], deg[n2])
+            min_deg = min(deg[n1], deg[n2])
+            sum_neighbour_deg_norm = sum_neighbour_degrees_norm(graph_copy, e)
+            max_neighbour_deg_norm = max_neighbour_degrees_norm(graph_copy, e)
+            # max_jnc = max_j_node_centrality(graph_copy, pos1_arr, e)
+            # sum_jnc = sum_j_node_centrality(graph_copy, pos1_arr, e)
+            nnodes, nedges = len(graph.nodes), len(graph.edges)
+            graph_copy_entropy = graph_entropy_norm(graph_copy)
+
+            feature_to_var = {'graph_id': idx_graph, 'edge_id': idx_edge, 'num_nodes': nnodes, 'num_edges': nedges, 'edge_betweenness': eb[e], 'stress': st[e], 'max_deg': max_deg, 'min_deg': min_deg, 'is_bridge': e in bridges,
+                                'diff_stress': total_stress0 - total_stress1, 'diff_cross': cross0 - cross1, 'diff_edglength': edgel0 - edgel1,
+                                'benchmark': bench, 'exp_factor_norm': exp_factor_norm, 'edge_cross_norm': edge_cross_norm, 'sum_neighbour_deg_norm': sum_neighbour_deg_norm, 'max_neighbour_deg_norm': max_neighbour_deg_norm, 'diff_graph_entropy_norm': graph_copy_entropy-graph_entropy, 'grad_diff': grad_diff}
+            row = []
+            for feature in list_features:
+                if feature in feature_to_var.keys():
+                    if feature =='edge_cross_norm' or feature == 'diff_cross':
+                        if include_labels:
+                            row.append(feature_to_var[feature])
+                    else:
                         row.append(feature_to_var[feature])
                 else:
-                    row.append(feature_to_var[feature])
-            else:
-                print('Feature not included ', feature)
-        
-        data.append(row)
+                    print('Feature not included ', feature)
 
-    if return_df:
-        if not include_labels:
-            cols = list_features.copy()
-            cols.remove('edge_cross_norm')
-            cols.remove('diff_cross')
-        return pd.DataFrame(data, columns=cols)
-    else:
-        return data
+            data.append(row)
+
+        if return_df:
+            if not include_labels:
+                cols = list_features.copy()
+                cols.remove('edge_cross_norm')
+                cols.remove('diff_cross')
+            return pd.DataFrame(data, columns=cols)
+        else:
+            return data
+    except Exception as e:
+        print('Error in graph ', idx_graph, e)
+        return None
 
 def generate_data_from_list(list_graphs: list, bench: str, list_features: list, draw_f, idx_start: int = 0):
     """
@@ -186,12 +190,13 @@ def generate_data_from_list(list_graphs: list, bench: str, list_features: list, 
     for idx_graph, graph in tqdm(list(enumerate(list_graphs[n:m]))):
         # TODO: fer-ho menys cutre i ojo amb la n
         graph_data = graph_to_df(graph, idx_graph+idx_start, draw_f, bench,list_features, return_df=False)
-        data.extend(graph_data)
+        if graph_data is not None:
+            data.extend(graph_data)
 
     return data
 
 
-def generate_df(list_features: list, draw_f):
+def generate_df(list_features: list, draw_f, benchmarks: list = all_benchmarks):
     """
     Generates a dataframe with the features specified in the paper.
 
@@ -231,16 +236,19 @@ def plot_statistics(df):
     plt.show()
 
 
-def main_data_gen(alg_name: str = 'kk'):
+def main_data_gen(alg_name: str = 'kk',benchmarks: list = all_benchmarks):
     list_features = all_features
     draw_f = algo_dict[alg_name]
-    df = generate_df(list_features, draw_f)
+    df = generate_df(list_features, draw_f,benchmarks)
     filename = 'graph_train_experiment_'+alg_name
-    df.to_csv('../data/'+filename+'.csv', index=False)
+    if len(benchmarks) == 1:
+        filename += '_'+benchmarks[0]
+    df.to_csv(filename+'.csv', index=False)
     # plot_statistics(df)
 
 
 if __name__ == "__main__":
    # stuff only to run when not called via 'import' here
-   main_data_gen('kk')
-   main_data_gen('fa2')
+   main_data_gen('kk',['random-dag'])
+
+

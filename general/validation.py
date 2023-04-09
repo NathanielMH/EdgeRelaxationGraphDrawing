@@ -198,6 +198,8 @@ def relax_and_recompute(graph: nx.Graph, draw_f, model: XGBClassifier, data: pd.
         pos1 = draw_f(g2,pos=pos1)
 
         data = graph_to_df(g2,0,draw_f,bench='Test',include_labels=False)
+        if data is None:
+            break
         X = preprocess_data(data,return_labels=False,drop_labels=False)
         proba = make_predictions(model,X)
     return pos1
@@ -235,8 +237,11 @@ def eval(model: XGBClassifier, df: pd.DataFrame, graphid2src: dict, method, resu
     for graphid, g in tqdm(graphid2src.items()):
         if graphid not in id_list:
             continue
-        #print(f"Processing graph {graphid}")
+        
+        print(f"Processing graph {graphid}")
         data = df[df['graph_id'] == graphid]
+
+        # Compute the initial layout
         pos0 = draw_f(g)
         if method_name == 'relax_one':
             pos1 = method(g, draw_f, model, data)
@@ -259,11 +264,11 @@ def eval(model: XGBClassifier, df: pd.DataFrame, graphid2src: dict, method, resu
         average_edge_cross_reduction += num_crossings0 - num_crossings1
 
     # Normalize comparing metrics
-    average_percentage_edge_cross_reduction /= len(graphid2src)
+    average_percentage_edge_cross_reduction /= len(id_list)
     average_percentage_edge_cross_reduction *= 100
-    average_edge_cross_angle_reduction /= len(graphid2src)
-    average_aspect_ratio_reduction /= len(graphid2src)
-    average_edge_cross_reduction /= len(graphid2src)
+    average_edge_cross_angle_reduction /= len(id_list)
+    average_aspect_ratio_reduction /= len(id_list)
+    average_edge_cross_reduction /= len(id_list)
 
     # Write results to file
     with open(results_file, 'a') as f:
@@ -277,11 +282,16 @@ def eval(model: XGBClassifier, df: pd.DataFrame, graphid2src: dict, method, resu
 def main(alg_name: str = 'kk'):
     model = xgb.XGBClassifier()
     model.load_model('../data/xgb_'+alg_name+'.bin')
-    df = pd.read_csv('../data/graph_train_experiment_'+alg_name+'.csv')
+    df = pd.read_csv('../training_data/graph_test_'+alg_name+'.csv')
+
     with open('../data/idToGraph.pickle', 'rb') as f:
         graphid2src = pickle.load(f)
+    
     draw_f = algo_dict[alg_name]
     eval(model, df, graphid2src, relax_and_recompute, 'first_analysis_'+alg_name+'.txt', draw_f, k=2)
+    eval(model, df, graphid2src, relax_block, 'first_analysis_'+alg_name+'.txt', draw_f, depth_limit=2)
+    eval(model, df, graphid2src, relax_one, 'first_analysis_'+alg_name+'.txt', draw_f)
+    eval(model, df, graphid2src, just_relax, 'first_analysis_'+alg_name+'.txt', draw_f)
 
 if __name__ == '__main__':
     main('kk')

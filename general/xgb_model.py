@@ -32,15 +32,15 @@ def preprocess_data(df: pd.DataFrame, return_labels: bool = True, drop_labels: b
         Xn (np.array): Array of features.
         yn (np.array): Array of labels.
     """
-    df['is_bridge'] = df['is_bridge'].astype(float)
+
+    df = df.dropna(inplace=False)
     if return_labels:
         yn = (df['edge_cross_norm'] > 0).to_numpy(dtype=int)
 
     if drop_labels:
-        df = df.drop(labels=['edge_cross_norm','diff_cross'],axis=1)
-        
-    df = df.drop(labels=['edge_id', 'graph_id', 'num_nodes', 'num_edges',
-                           'benchmark', 'max_deg', 'min_deg', 'is_bridge'], axis=1)
+        df = df.drop(columns=['edge_cross_norm','diff_cross'],inplace=False)
+    
+    df = df.drop(columns=['edge_id', 'graph_id', 'num_nodes', 'num_edges','benchmark', 'max_deg', 'min_deg', 'is_bridge'],inplace=False)
 
     Xn = df.to_numpy(dtype=float)
 
