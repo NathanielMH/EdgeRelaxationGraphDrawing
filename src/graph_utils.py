@@ -2,7 +2,7 @@
 GRAPH UTILS module
 Authors: Pau Escofet
          Raúl Higueras (raul.higueras@estudiantat.upc.edu)
-         Nathaniel Mitrani
+         Nathaniel Mitrani (nathanielmitrani@gmail.com)
 
 Set of utilities and functions to work with graphs in the
 Networkx environment.

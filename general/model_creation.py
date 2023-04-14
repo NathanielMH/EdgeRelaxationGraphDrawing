@@ -6,7 +6,6 @@ module_path = os.path.abspath(os.path.join('..'))
 if module_path not in sys.path:
     sys.path.append(module_path)
 
-import pickle
 from general.xgb_model import preprocess_data, make_predictions, evaluate_accuracy
 from general.validation import relax_and_recompute, relax_block, relax_one, just_relax  
 from general.data_generation import draw_fa2, draw_kk
@@ -35,7 +34,16 @@ DRAW_FS = {
 #@click.option('-a', '--alg', 'algo_name', type=click.Choice(['kk', 'fa2'], case_sensitive=False), help="Drawing algorithm to use")
 
 def perform_experiment_model(results_file: str, unwanted_features: list, algo_name: str):
-    """Runs the experiments of Edge Relaxation Graph Drawing."""
+    """Runs the experiments of Edge Relaxation Graph Drawing.
+    
+    Args:
+        results_file: Path to save results.
+        unwanted_features: Features to ignore.
+        algo_name: Drawing algorithm to use.
+    
+    Returns:
+        None
+    """
 
     # Select dataframe that contains that was generated with the algorithm I chose
     df = pd.read_csv(f'../training_data/graph_{algo_name}.csv')

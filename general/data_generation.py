@@ -200,6 +200,11 @@ def generate_df(list_features: list, draw_f, benchmarks: list = all_benchmarks):
     """
     Generates a dataframe with the features specified in the paper.
 
+    Args:
+        list_features (list): list of features to include in the dataframe.
+        draw_f (function): function to draw the graph.
+        benchmarks (list): list of benchmarks to include in the dataframe.
+
     Returns:
         df (pd.DataFrame): dataframe with the features specified in the paper.
     """
@@ -214,6 +219,15 @@ def generate_df(list_features: list, draw_f, benchmarks: list = all_benchmarks):
 
 
 def plot_statistics(df):
+    """
+    Plots the statistics of the dataframe.
+
+    Args:
+        df (pd.DataFrame): dataframe with the features specified in the paper.
+
+    Returns:
+        None
+    """
     pd.plotting.scatter_matrix(
         df[['edge_betweenness', 'stress', 'diff_stress', 'diff_cross', 'diff_edgelength']])
 
