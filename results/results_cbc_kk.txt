@@ -1,0 +1,9 @@
+Algorithm: kk 
+Unwanted features: [] 
+F1 score: 0.4588607594936709 
+Accuracy: 0.632258064516129 
+Precision: 0.35802469135802467 
+Recall: 0.6387665198237885 
+Number of positive samples: 227 
+Total number of samples: 930 
+----------------------------------------

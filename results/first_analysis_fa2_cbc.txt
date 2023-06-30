@@ -1,0 +1,40 @@
+Method used: relax_and_recompute 
+             Average of percentage of edge crossing reduction: 12.09890835033846 
+             Average of edge cross angle reduction: 0.0
+             Average of aspect ratio reduction: 0.0 
+             Average of edge cross reduction: 2.5217391304347827 
+Method used: relax_block 
+             Average of percentage of edge crossing reduction: -2.3555403442906404 
+             Average of edge cross angle reduction: 0.0
+             Average of aspect ratio reduction: 0.0 
+             Average of edge cross reduction: 2.101449275362319 
+Method used: relax_one 
+             Average of percentage of edge crossing reduction: -4.136565126907051 
+             Average of edge cross angle reduction: 0.0
+             Average of aspect ratio reduction: 0.0 
+             Average of edge cross reduction: 3.2971014492753623 
+Method used: just_relax 
+             Average of percentage of edge crossing reduction: -31.304518083518325 
+             Average of edge cross angle reduction: 0.0
+             Average of aspect ratio reduction: 0.0 
+             Average of edge cross reduction: -4.978260869565218 
+Method used: relax_and_recompute 
+             Average of percentage of edge crossing reduction: 14.894823620840075 
+             Average of edge cross angle reduction: 0.0
+             Average of aspect ratio reduction: 0.0 
+             Average of edge cross reduction: 7.442028985507246 
+Method used: relax_block 
+             Average of percentage of edge crossing reduction: -2.7065018818947313 
+             Average of edge cross angle reduction: 0.0
+             Average of aspect ratio reduction: 0.0 
+             Average of edge cross reduction: 2.420289855072464 
+Method used: relax_one 
+             Average of percentage of edge crossing reduction: 7.471084034723178 
+             Average of edge cross angle reduction: 0.0
+             Average of aspect ratio reduction: 0.0 
+             Average of edge cross reduction: 3.0942028985507246 
+Method used: just_relax 
+             Average of percentage of edge crossing reduction: -19.925246965255088 
+             Average of edge cross angle reduction: 0.0
+             Average of aspect ratio reduction: 0.0 
+             Average of edge cross reduction: -8.557971014492754 

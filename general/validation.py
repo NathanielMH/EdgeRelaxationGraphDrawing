@@ -1,5 +1,7 @@
 import sys
 import os
+import warnings
+warnings.filterwarnings('ignore')
 
 module_path = os.path.abspath(os.path.join('..'))
 if module_path not in sys.path:
@@ -9,12 +11,14 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from xgboost import XGBClassifier
+from sklearn.ensemble import RandomForestClassifier
+from catboost import CatBoostClassifier
 from tqdm import tqdm
 import networkx as nx
 import xgboost as xgb
 import pickle
 
-from xgb_model import preprocess_data, make_predictions
+from general.model_utils import preprocess_data, make_predictions
 from src.graph_utils import compareGraphs, quality_measures
 from general.data_generation import graph_to_df, draw_fa2, draw_kk
 
@@ -166,7 +170,7 @@ def relax_block(graph: nx.Graph, draw_f, model: XGBClassifier, data: pd.DataFram
 
     return pos
 
-def relax_and_recompute(graph: nx.Graph, draw_f, model: XGBClassifier, data: pd.DataFrame = None, k: int = 3) -> dict:
+def relax_and_recompute(graph: nx.Graph, draw_f, model: XGBClassifier, data: pd.DataFrame = None, T:float = 0. , k: int = 3) -> dict:
     """Relax 1 edge -> recompute -> relax 1 edge -> recompute -> ... k times
     
     Args:
@@ -184,30 +188,48 @@ def relax_and_recompute(graph: nx.Graph, draw_f, model: XGBClassifier, data: pd.
         X = preprocess_data(data,return_labels=False,drop_labels=False)
     else:
         X = preprocess_data(data,return_labels=False,drop_labels=True)
+
     proba = make_predictions(model,X)
+
     removed_edges = []
     pos0 = draw_f(graph)
     pos1 = pos0
     for i in range(k):
+        print(f'Iteration {i+1}/{k}')
         max_proba_idx = np.argmax(proba)
+        if proba[max_proba_idx] < T:
+            print('No more edges to remove')
+            break
         max_proba_edge = list(graph.edges)[max_proba_idx]
         removed_edges.append(max_proba_edge)
 
         g2 = graph.copy()
-        g2.remove_edges_from([max_proba_edge])
+        # g2.remove_edges_from([max_proba_edge])
+        g2.remove_edges_from(removed_edges)
+
         pos1 = draw_f(g2,pos=pos1)
 
         data = graph_to_df(g2,0,draw_f,bench='Test',include_labels=False)
+        
         if data is None:
-            break
+            proba[max_proba_idx] = -1
+            removed_edges.pop()
+            # To ensure that we don't remove the same edge twice
+            # And that we keep the edge that gave an error on removal
+            # Results are worse this way for now
+            continue
+
+        data = data.fillna(data.mean(numeric_only=True))
+
         X = preprocess_data(data,return_labels=False,drop_labels=False)
         proba = make_predictions(model,X)
+    
     return pos1
 #####
 # Evaluation functions 
 #####
 
-def eval(model: XGBClassifier, df: pd.DataFrame, graphid2src: dict, method, results_file: str, draw_f,**kwargs) -> None:
+def eval(model: XGBClassifier, df: pd.DataFrame, graphid2src: dict, method, results_file: str, draw_f, T:float = 0., **kwargs) -> None:
     """Evaluate the given method with the given model on the given graphs
     
     Args:
@@ -217,7 +239,7 @@ def eval(model: XGBClassifier, df: pd.DataFrame, graphid2src: dict, method, resu
         method (function): The function used to generate the new layout
         results_file (str): The file to save the results to
         draw_f (function): The function used to draw the graphs
-        method_name (str): The name of the method
+        T (float): The threshold to use for the relax and recompute method
         **kwargs: Additional arguments to pass to the method depending on the method
     
     Returns:
@@ -231,18 +253,34 @@ def eval(model: XGBClassifier, df: pd.DataFrame, graphid2src: dict, method, resu
     average_edge_cross_angle_reduction = 0.
     average_aspect_ratio_reduction = 0.
     average_edge_cross_reduction = 0.
+    better_layouts = 0
+    worse_layouts = 0
+    same_layouts = 0
+    diff = []
 
     # Iterate over all graphs
     id_list = df['graph_id'].unique()
     for graphid, g in tqdm(graphid2src.items()):
+        # Skip first two graphs
+        if graphid in [13579,13580]:
+            continue
+
         if graphid not in id_list:
             continue
         
-        print(f"Processing graph {graphid}")
-        data = df[df['graph_id'] == graphid]
+        # ID_DF = ID_PCKL-2, so we need to subtract 2.
+        # This can be seen as the graph 13579 is the first graph in the dataframe,
+        # but matches graph 13581 in the graphid2src dictionary.
+
+        print(f"Processing graph {graphid-2}")
+        data = df[df['graph_id'] == graphid-2]
+
+        # Fill missing values with mean of the column
+        data = data.fillna(data.mean(numeric_only=True))
 
         # Compute the initial layout
         pos0 = draw_f(g)
+
         if method_name == 'relax_one':
             pos1 = method(g, draw_f, model, data)
         elif method_name == 'just_relax':
@@ -250,49 +288,73 @@ def eval(model: XGBClassifier, df: pd.DataFrame, graphid2src: dict, method, resu
         elif method_name == 'relax_block':
             pos1 = method(g, draw_f, model, data, kwargs['depth_limit'])
         else:
-            pos1 = method(g, draw_f, model, data, kwargs['k'])
+            pos1 = method(g, draw_f, model, data, T, kwargs['k'])
         
         # Compute quality measures for both layouts
         num_crossings0, aspect_ratio0, mean_crossing_angle0, _, _, _, _ = quality_measures(g, pos=pos0)
         num_crossings1, aspect_ratio1, mean_crossing_angle1, _, _, _, _ = quality_measures(g, pos=pos1)
 
         # Compute the comparing metrics
-        if num_crossings0:
+        if num_crossings0: 
             average_percentage_edge_cross_reduction += (num_crossings0 - num_crossings1) / num_crossings0
-        average_edge_cross_angle_reduction += mean_crossing_angle0 - mean_crossing_angle1
-        average_aspect_ratio_reduction += aspect_ratio0 - aspect_ratio1
+
+        if num_crossings0 != num_crossings1:
+            diff.append(num_crossings0-num_crossings1)
+
+
+        if num_crossings0 > num_crossings1:
+            better_layouts += 1
+        elif num_crossings0 < num_crossings1:
+            worse_layouts += 1
+        else:
+            same_layouts += 1
+
+        # average_edge_cross_angle_reduction += mean_crossing_angle0 - mean_crossing_angle1
+        # average_aspect_ratio_reduction += aspect_ratio0 - aspect_ratio1
         average_edge_cross_reduction += num_crossings0 - num_crossings1
 
-    # Normalize comparing metrics
-    average_percentage_edge_cross_reduction /= len(id_list)
+    # Normalize comparing metrics, should be divided by len(id_list)-2
+    average_percentage_edge_cross_reduction /= (len(id_list)-2)
     average_percentage_edge_cross_reduction *= 100
-    average_edge_cross_angle_reduction /= len(id_list)
-    average_aspect_ratio_reduction /= len(id_list)
-    average_edge_cross_reduction /= len(id_list)
+    average_edge_cross_angle_reduction /= (len(id_list)-2)
+    average_aspect_ratio_reduction /= (len(id_list)-2)
+    average_edge_cross_reduction /= (len(id_list)-2)
 
     # Write results to file
     with open(results_file, 'a') as f:
-        f.write(f"Method used: {method_name} \n \
-            Average of percentage of edge crossing reduction: {average_percentage_edge_cross_reduction} \n \
-            Average of edge cross angle reduction: {average_edge_cross_angle_reduction}\n \
-            Average of aspect ratio reduction: {average_aspect_ratio_reduction} \n \
-            Average of edge cross reduction: {average_edge_cross_reduction} \n")
+        f.write(f"Method used: {method_name}\n")
+        f.write(f"Threshold used: {T}\n")
+        f.write(f"Average of percentage of edge crossing reduction: {average_percentage_edge_cross_reduction}\n")
+        f.write(f"Average of edge cross angle reduction: {average_edge_cross_angle_reduction}\n")
+        f.write(f"Average of aspect ratio reduction: {average_aspect_ratio_reduction}\n")
+        f.write(f"Average of edge cross reduction: {average_edge_cross_reduction}\n")
+        f.write(f"Better layouts: {better_layouts} \nWorse layouts: {worse_layouts}\nSame layouts: {same_layouts}\n")
+        f.write(f"Non zero differences: {diff}\n")
 
 
-def main(alg_name: str = 'kk'):
-    model = xgb.XGBClassifier()
-    model.load_model('../data/xgb_'+alg_name+'.bin')
+def main(alg_name: str = 'kk', classifier: str = 'xgb', T: float = 0.):
+    if classifier == 'xgb':
+        model = XGBClassifier()
+    elif classifier == 'rf':
+        model = RandomForestClassifier()
+    elif classifier == 'cbc':
+        model = CatBoostClassifier()
+    
+    model.load_model('../data/'+classifier+'_'+alg_name+'.bin')
     df = pd.read_csv('../training_data/graph_test_'+alg_name+'.csv')
 
     with open('../data/idToGraph.pickle', 'rb') as f:
         graphid2src = pickle.load(f)
     
     draw_f = algo_dict[alg_name]
-    eval(model, df, graphid2src, relax_and_recompute, 'first_analysis_'+alg_name+'.txt', draw_f, k=2)
-    eval(model, df, graphid2src, relax_block, 'first_analysis_'+alg_name+'.txt', draw_f, depth_limit=2)
-    eval(model, df, graphid2src, relax_one, 'first_analysis_'+alg_name+'.txt', draw_f)
-    eval(model, df, graphid2src, just_relax, 'first_analysis_'+alg_name+'.txt', draw_f)
+    filename = '../results/first_analysis_'+alg_name+'_'+classifier+'.txt'
+
+    eval(model, df, graphid2src, relax_and_recompute, filename, draw_f, T=T, k=2)
+    # eval(model, df, graphid2src, relax_block, filename, draw_f, depth_limit=2)
+    # eval(model, df, graphid2src, relax_one, filename, draw_f)
+    # eval(model, df, graphid2src, just_relax, filename, draw_f)
 
 if __name__ == '__main__':
-    main('kk')
-    main('fa2')
+    for t in [0.55,0.6,0.65,0.7,0.75,0.8]:
+        main('kk','xgb',t)
+        main('fa2','xgb',t)

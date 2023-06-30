@@ -19,6 +19,9 @@
 # Available under the GPLv3
 
 import random
+# Fixing random state for reproducibility
+random.seed(42)
+
 import time
 
 import numpy
@@ -244,6 +247,7 @@ class ForceAtlas2:
     # dictionary of node positions (2D X-Y tuples) indexed by the node name.
     def forceatlas2_networkx_layout(self, G, pos=None, iterations=100, weight_attr=None):
         import networkx
+        from networkx import to_scipy_sparse_array
         try:
             import cynetworkx
         except ImportError:
@@ -255,7 +259,7 @@ class ForceAtlas2:
         ), "Not a networkx graph"
         assert isinstance(pos, dict) or (
             pos is None), "pos must be specified as a dictionary, as in networkx"
-        M = networkx.to_scipy_sparse_matrix(
+        M = networkx.to_scipy_sparse_array(
             G, dtype='f', format='lil', weight=weight_attr)
         if pos is None:
             l = self.forceatlas2(M, pos=None, iterations=iterations)
@@ -270,7 +274,7 @@ class ForceAtlas2:
     def forceatlas2_igraph_layout(self, G, pos=None, iterations=100, weight_attr=None):
 
         from scipy.sparse import csr_matrix
-        import igraph
+        import igraph  
 
         def to_sparse(graph, weight_attr=None):
             edges = graph.get_edgelist()

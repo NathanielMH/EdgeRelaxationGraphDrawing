@@ -1,0 +1,63 @@
+Method used: relax_and_recompute
+Threshold used: 0.55
+Average of percentage of edge crossing reduction: 6.030552523472886
+Average of edge cross angle reduction: 0.0
+Average of aspect ratio reduction: 0.0
+Average of edge cross reduction: 5.463768115942029
+Better layouts: 64 
+Worse layouts: 33
+Same layouts: 39
+Non zero differences: [1, 4, 9, 8, -39, 1, 1, 8, -11, -1, -4, 2, 6, 66, -3, -1, 5, 17, 10, 1, -1, 2, 10, 41, 2, 52, 4, 64, 1, 10, -1, 3, 2, -9, 3, 3, 1, 1, 5, 1, 4, -1, 1, -4, -4, 130, -17, -27, -5, -11, -1, -9, 2, -12, 5, -5, -1, 6, -7, 6, 97, -5, -5, -3, -2, -1, -1, 3, 49, -1, 29, 1, 6, 1, 1, 7, 2, 1, 52, 2, 1, 5, 99, 6, 8, 3, -1, 24, 2, 8, 1, 31, -1, 2, -3, 13, -1]
+
+Method used: relax_and_recompute
+Threshold used: 0.6
+Average of percentage of edge crossing reduction: 7.750551401833512
+Average of edge cross angle reduction: 0.0
+Average of aspect ratio reduction: 0.0
+Average of edge cross reduction: 3.108695652173913
+Better layouts: 61 
+Worse layouts: 39
+Same layouts: 36
+Non zero differences: [-1, -1, 6, -1, 101, 1, 6, 4, 8, -2, 1, 3, 7, -4, 1, 58, 1, 3, 7, 45, 7, 8, -1, 1, -6, 46, -2, 43, -11, -11, 7, -9, 1, 2, 6, -1, 6, 1, 1, -5, -6, 1, -6, -1, 12, -3, 57, 3, 1, 1, -6, -2, -12, 1, 3, 7, -2, 18, -3, -13, 1, -115, -1, -4, 2, -1, 3, 6, -3, -1, 11, 3, 7, -8, -4, 4, 2, -2, -1, 6, 16, -1, 41, 1, 1, 1, -3, 4, -3, 8, 2, 49, 5, -1, 1, 16, 4, 9, -1, -1]
+Method used: relax_and_recompute
+Threshold used: 0.65
+Average of percentage of edge crossing reduction: -2.917701932585011
+Average of edge cross angle reduction: 0.0
+Average of aspect ratio reduction: 0.0
+Average of edge cross reduction: 3.3840579710144927
+Better layouts: 68 
+Worse layouts: 40
+Same layouts: 28
+Non zero differences: [-1, 6, -16, -1, 3, 2, 9, 3, -1, 2, -1, -13, 1, -1, 1, 1, -4, 5, 3, 48, -3, 1, 17, 69, 5, -1, -2, 16, 149, 1, 74, 44, 7, -3, 5, 1, 2, 7, -1, 1, -1, 1, 4, 8, -3, 1, -2, 1, 53, 24, -1, 17, -3, -6, 1, -23, 1, 1, -1, 2, 2, 1, -1, 1, -7, -5, 3, 1, -10, -8, 2, 3, 1, 2, 5, -12, -3, -5, -3, 3, 4, -8, 1, -8, -1, 1, 1, 1, -9, 2, 1, 66, -2, 2, 2, -74, 13, 1, 4, 10, -23, 4, -4, 1, 4, -1, -1, 1]
+Method used: relax_and_recompute
+Threshold used: 0.7
+Average of percentage of edge crossing reduction: 2.9587669142254076
+Average of edge cross angle reduction: 0.0
+Average of aspect ratio reduction: 0.0
+Average of edge cross reduction: 0.16666666666666666
+Better layouts: 61 
+Worse layouts: 40
+Same layouts: 35
+Non zero differences: [1, -4, 9, 9, -38, 2, -4, -1, 5, 9, -3, -5, 5, 2, 2, 123, -3, 1, 7, -34, -1, 3, 1, 1, 13, 27, 70, -125, -22, 30, 1, 14, 1, 3, -1, -1, 1, -1, 3, -4, -1, 2, 6, -77, 10, 3, 14, 7, -1, 5, -2, 1, -3, 1, 11, 9, 1, 4, 10, 3, -58, 6, -3, -5, 2, 4, -3, -2, -1, -4, -2, 3, -11, 3, -2, 3, 1, -6, 3, 1, -2, -2, -24, -2, 1, 1, -4, 1, -2, 3, 2, 1, -45, -4, 13, 1, -3, 17, 2, 40, 1]
+
+Method used: relax_and_recompute
+Threshold used: 0.75
+Average of percentage of edge crossing reduction: 7.120887207562587
+Average of edge cross angle reduction: 0.0
+Average of aspect ratio reduction: 0.0
+Average of edge cross reduction: 2.898550724637681
+Better layouts: 60 
+Worse layouts: 39
+Same layouts: 37
+Non zero differences: [-1, -2, -12, 11, 26, 1, 4, 19, 1, -2, 2, -11, 3, 5, -29, -2, -5, -4, -4, -20, 9, -5, 4, 1, 1, 26, 36, -17, 46, 35, 5, 4, 1, -7, 3, 4, -4, 4, -1, 2, -3, -3, -1, -2, 5, -4, 61, 2, 38, -6, -3, 2, -6, 32, -1, 16, 3, 1, 38, 2, 75, -5, 14, -1, 1, 1, 13, 1, 1, -55, 2, 3, -8, -1, 4, 2, 2, -1, -6, 25, -2, 1, 5, 2, 2, 50, 2, -1, 19, -61, 8, 4, 6, -1, 9, -2, -1, -6, 1]
+
+Method used: relax_and_recompute
+Threshold used: 0.8
+Average of percentage of edge crossing reduction: -1.654031071629967
+Average of edge cross angle reduction: 0.0
+Average of aspect ratio reduction: 0.0
+Average of edge cross reduction: 4.188405797101449
+Better layouts: 58 
+Worse layouts: 46
+Same layouts: 32
+Non zero differences: [-1, -4, -1, 1, 1, -1, 98, 1, 3, 1, -5, 14, -1, -1, 3, 3, -8, 64, 1, -2, 23, 94, 2, -2, 7, -1, 19, 30, 4, 34, 17, 17, 1, 23, 1, -7, -1, -8, 2, -5, 22, -3, -1, -2, 2, -1, -2, -3, 1, -64, -1, 16, 3, 1, 1, 1, 1, 1, -19, -2, -3, 6, 1, 2, -3, -1, 30, 1, 93, -5, 4, -1, 4, -1, 11, -2, -12, 4, -15, -3, -1, 6, -1, 2, 10, 6, -34, -2, -2, 108, 1, -11, 38, -1, -48, 15, -3, 3, 2, 1, -1, -1, 13, 1]

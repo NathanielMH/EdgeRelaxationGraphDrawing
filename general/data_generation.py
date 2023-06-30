@@ -10,7 +10,6 @@ from src.graph_utils import max_j_node_centrality, sum_j_node_centrality, j_node
 from src.graph_utils import gradient_kamada_kawai, max_neighbour_degrees_norm, sum_neighbour_degrees_norm, expansion_factor_norm, edge_crossings_norm
 from src.graph_utils import stress, total_stress, num_crossings, mean_edge_length, nodes_dict_to_array, distance_matrix
 from src.graph_parser import parseGraphmlFile
-from src.graph_dataset import GraphDataset
 from fa.forceatlas2 import ForceAtlas2
 from tqdm import tqdm
 import matplotlib.pyplot as plt
@@ -41,6 +40,7 @@ def draw_fa2(g,pos=None):
         dict: positions of nodes
     """
     fa2 = ForceAtlas2(verbose=False)
+    # Should be pos=None, as fa2 works with random initial positions
     posTuple = fa2.forceatlas2_networkx_layout(G=g, pos=pos, iterations=100)
     for x in posTuple.keys():
         posTuple[x] = np.array(posTuple[x])
@@ -100,7 +100,7 @@ def graph_to_df(graph: nx.Graph, idx_graph:int, draw_f,bench:str,list_features:l
         pos0 = draw_f(graph, pos=nx.spectral_layout(graph))
 
         #  Compute general graph attributes
-        eb = nx.edge_betweenness(graph)     # edge betweenness
+        eb = nx.edge_betweenness_centrality(graph)     # edge betweenness
         st = stress(graph, pos0)
         cross0 = 0
         if include_labels:

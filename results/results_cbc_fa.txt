@@ -1,0 +1,9 @@
+Algorithm: fa2 
+Unwanted features: [] 
+F1 score: 0.708507670850767 
+Accuracy: 0.7752688172043011 
+Precision: 0.7055555555555556 
+Recall: 0.711484593837535 
+Number of positive samples: 357 
+Total number of samples: 930 
+----------------------------------------

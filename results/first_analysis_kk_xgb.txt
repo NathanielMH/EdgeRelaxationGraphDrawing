@@ -1,0 +1,65 @@
+Method used: relax_and_recompute
+Threshold used: 0.55
+Average of percentage of edge crossing reduction: -2.192243265588151
+Average of edge cross angle reduction: 0.0
+Average of aspect ratio reduction: 0.0
+Average of edge cross reduction: 0.8188405797101449
+Better layouts: 25 
+Worse layouts: 12
+Same layouts: 99
+Non zero differences: [2, -11, 2, 3, 9, -6, 4, 18, -13, 9, 6, 21, -8, 2, -1, 48, 5, 2, 9, -2, -5, 3, -1, -2, 2, 3, 1, -1, 3, -7, 1, 12, 1, 12, -13, 4, 1]
+
+Method used: relax_and_recompute
+Threshold used: 0.6
+Average of percentage of edge crossing reduction: -3.4153438365148086
+Average of edge cross angle reduction: 0.0
+Average of aspect ratio reduction: 0.0
+Average of edge cross reduction: 0.8405797101449275
+Better layouts: 21 
+Worse layouts: 13
+Same layouts: 102
+Non zero differences: [2, -11, 2, 3, -2, 9, -6, 4, 18, -13, 9, 6, 21, -8, 2, -1, 48, 5, 9, -2, -5, 3, -2, 3, -1, -1, 2, -7, 1, 12, 1, 12, -1, 4]
+
+Method used: relax_and_recompute
+Threshold used: 0.65
+Average of percentage of edge crossing reduction: -3.8286105924925624
+Average of edge cross angle reduction: 0.0
+Average of aspect ratio reduction: 0.0
+Average of edge cross reduction: 0.41304347826086957
+Better layouts: 18 
+Worse layouts: 14
+Same layouts: 104
+Non zero differences: [2, -11, 2, 3, -2, 9, -6, -2, 18, -13, 9, 6, 21, -8, 2, 5, 9, -2, -5, 3, -2, 3, -1, -1, 2, -7, 1, 12, 1, 12, -1, -2]
+
+Method used: relax_and_recompute
+Threshold used: 0.7
+Average of percentage of edge crossing reduction: 1.0805888227833496
+Average of edge cross angle reduction: 0.0
+Average of aspect ratio reduction: 0.0
+Average of edge cross reduction: 0.3695652173913043
+Better layouts: 13 
+Worse layouts: 7
+Same layouts: 116
+Non zero differences: [2, -11, 2, -2, 9, -6, 18, 9, -1, 5, 9, 3, -2, 3, -1, 2, 1, 1, 12, -2]
+
+Method used: relax_and_recompute
+Threshold used: 0.75
+Average of percentage of edge crossing reduction: 1.3725879973472084
+Average of edge cross angle reduction: 0.0
+Average of aspect ratio reduction: 0.0
+Average of edge cross reduction: 0.36231884057971014
+Better layouts: 12 
+Worse layouts: 4
+Same layouts: 120
+Non zero differences: [2, -11, 2, 9, 3, 18, 11, -1, 5, 3, 3, 2, -7, 1, 12, -2]
+
+Method used: relax_and_recompute
+Threshold used: 0.8
+Average of percentage of edge crossing reduction: 1.309919780618642
+Average of edge cross angle reduction: 0.0
+Average of aspect ratio reduction: 0.0
+Average of edge cross reduction: 0.021739130434782608
+Better layouts: 7 
+Worse layouts: 4
+Same layouts: 125
+Non zero differences: [2, -11, 2, 9, -1, 5, 3, 2, -7, 1, -2]
