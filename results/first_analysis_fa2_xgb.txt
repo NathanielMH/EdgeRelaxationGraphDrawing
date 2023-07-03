@@ -1,63 +1,132 @@
 Method used: relax_and_recompute
 Threshold used: 0.55
-Average of percentage of edge crossing reduction: 6.030552523472886
+Average of percentage of edge crossing reduction: 7.459825778624131
+Average of percentage of edge crossing improvement reduction: 26.572671788424064
 Average of edge cross angle reduction: 0.0
 Average of aspect ratio reduction: 0.0
-Average of edge cross reduction: 5.463768115942029
-Better layouts: 64 
-Worse layouts: 33
-Same layouts: 39
-Non zero differences: [1, 4, 9, 8, -39, 1, 1, 8, -11, -1, -4, 2, 6, 66, -3, -1, 5, 17, 10, 1, -1, 2, 10, 41, 2, 52, 4, 64, 1, 10, -1, 3, 2, -9, 3, 3, 1, 1, 5, 1, 4, -1, 1, -4, -4, 130, -17, -27, -5, -11, -1, -9, 2, -12, 5, -5, -1, 6, -7, 6, 97, -5, -5, -3, -2, -1, -1, 3, 49, -1, 29, 1, 6, 1, 1, 7, 2, 1, 52, 2, 1, 5, 99, 6, 8, 3, -1, 24, 2, 8, 1, 31, -1, 2, -3, 13, -1]
-
+Average of edge cross reduction: 5.022058823529412
+Better layouts: 66 
+Worse layouts: 34
+Same layouts: 36
+Non zero differences: [1, 8, 9, 10, -81, 1, 1, 8, -11, 2, -1, -4, -3, 1, 6, 87, -3, -1, 5, 8, 9, 1, 3, 2, 13, 39, 2, 25, 12, 64, 1, 8, -3, 2, 2, -9, 3, 1, 1, 1, 3, 2, 5, -1, 1, -4, -4, 140, -21, -41, -10, -13, -1, 2, 2, -12, -1, 5, -5, -1, 6, -10, 5, 101, -5, -1, -3, -1, 5, 29, -1, 34, 1, 5, -1, 1, 1, 6, -6, 1, 46, 1, 1, 5, 87, 6, 9, 3, -1, 44, -2, 7, 1, 1, 31, -1, 3, -3, 13, -1]
+ 
 Method used: relax_and_recompute
 Threshold used: 0.6
-Average of percentage of edge crossing reduction: 7.750551401833512
+Average of percentage of edge crossing reduction: 8.440230682325835
+Average of percentage of edge crossing improvement reduction: 24.00134826753679
 Average of edge cross angle reduction: 0.0
 Average of aspect ratio reduction: 0.0
-Average of edge cross reduction: 3.108695652173913
-Better layouts: 61 
-Worse layouts: 39
-Same layouts: 36
-Non zero differences: [-1, -1, 6, -1, 101, 1, 6, 4, 8, -2, 1, 3, 7, -4, 1, 58, 1, 3, 7, 45, 7, 8, -1, 1, -6, 46, -2, 43, -11, -11, 7, -9, 1, 2, 6, -1, 6, 1, 1, -5, -6, 1, -6, -1, 12, -3, 57, 3, 1, 1, -6, -2, -12, 1, 3, 7, -2, 18, -3, -13, 1, -115, -1, -4, 2, -1, 3, 6, -3, -1, 11, 3, 7, -8, -4, 4, 2, -2, -1, 6, 16, -1, 41, 1, 1, 1, -3, 4, -3, 8, 2, 49, 5, -1, 1, 16, 4, 9, -1, -1]
+Average of edge cross reduction: 2.8970588235294117
+Better layouts: 60 
+Worse layouts: 37
+Same layouts: 39
+Non zero differences: [-1, 1, -1, 6, -1, 45, 1, 12, 4, 3, 8, -3, 1, 3, 6, -6, 2, 72, 1, 1, 3, 7, 33, 7, -1, 1, 21, -2, 48, -6, -7, -10, -4, 1, -2, 2, 5, -1, 1, 1, -5, -6, 1, -6, -1, 23, -3, 58, 5, 1, -6, -2, -12, -2, 1, 7, -3, 18, -3, -125, -1, -6, 2, 1, 3, 10, -2, -1, 11, 3, 8, 3, -4, 3, 3, -2, -1, 7, 14, -1, 34, 1, 1, 1, -4, 4, -3, 8, 2, 79, 2, 1, 16, 4, 9, -1, -1]
+ 
 Method used: relax_and_recompute
 Threshold used: 0.65
-Average of percentage of edge crossing reduction: -2.917701932585011
+Average of percentage of edge crossing reduction: -4.6053471720143895
+Average of percentage of edge crossing improvement reduction: 26.650652182275635
 Average of edge cross angle reduction: 0.0
 Average of aspect ratio reduction: 0.0
-Average of edge cross reduction: 3.3840579710144927
-Better layouts: 68 
-Worse layouts: 40
-Same layouts: 28
-Non zero differences: [-1, 6, -16, -1, 3, 2, 9, 3, -1, 2, -1, -13, 1, -1, 1, 1, -4, 5, 3, 48, -3, 1, 17, 69, 5, -1, -2, 16, 149, 1, 74, 44, 7, -3, 5, 1, 2, 7, -1, 1, -1, 1, 4, 8, -3, 1, -2, 1, 53, 24, -1, 17, -3, -6, 1, -23, 1, 1, -1, 2, 2, 1, -1, 1, -7, -5, 3, 1, -10, -8, 2, 3, 1, 2, 5, -12, -3, -5, -3, 3, 4, -8, 1, -8, -1, 1, 1, 1, -9, 2, 1, 66, -2, 2, 2, -74, 13, 1, 4, 10, -23, 4, -4, 1, 4, -1, -1, 1]
+Average of edge cross reduction: 3.375
+Better layouts: 64 
+Worse layouts: 42
+Same layouts: 30
+Non zero differences: [-1, 6, -16, -1, 5, 2, 19, 5, -1, 2, -1, -7, 1, -2, 1, 4, -10, 5, 4, 44, -2, 1, 17, 66, 4, -1, 1, 16, 146, 1, 67, 30, -8, 4, -3, 2, 7, -1, 1, -2, 1, 4, 7, -3, 1, -2, 1, 59, 24, -1, 7, -7, -2, -23, 1, 1, -1, 1, 2, 1, -1, 1, -5, -5, -7, 1, -8, -13, 3, 1, 2, 6, -6, -3, 3, -3, 3, -9, -3, 1, -8, -1, -1, 1, 1, 1, -9, 1, 1, 67, -2, 2, 2, -65, 13, 1, 4, 33, -23, 7, -4, 1, 4, -1, -1, 1]
+ 
 Method used: relax_and_recompute
 Threshold used: 0.7
-Average of percentage of edge crossing reduction: 2.9587669142254076
+Average of percentage of edge crossing reduction: 5.191673128456854
+Average of percentage of edge crossing improvement reduction: 27.126189223093782
 Average of edge cross angle reduction: 0.0
 Average of aspect ratio reduction: 0.0
-Average of edge cross reduction: 0.16666666666666666
+Average of edge cross reduction: 1.286764705882353
 Better layouts: 61 
-Worse layouts: 40
-Same layouts: 35
-Non zero differences: [1, -4, 9, 9, -38, 2, -4, -1, 5, 9, -3, -5, 5, 2, 2, 123, -3, 1, 7, -34, -1, 3, 1, 1, 13, 27, 70, -125, -22, 30, 1, 14, 1, 3, -1, -1, 1, -1, 3, -4, -1, 2, 6, -77, 10, 3, 14, 7, -1, 5, -2, 1, -3, 1, 11, 9, 1, 4, 10, 3, -58, 6, -3, -5, 2, 4, -3, -2, -1, -4, -2, 3, -11, 3, -2, 3, 1, -6, 3, 1, -2, -2, -24, -2, 1, 1, -4, 1, -2, 3, 2, 1, -45, -4, 13, 1, -3, 17, 2, 40, 1]
-
+Worse layouts: 41
+Same layouts: 34
+Non zero differences: [1, -2, 9, 7, -38, 4, -5, -1, 5, 9, -3, -4, 4, -1, 2, 74, -3, 1, 7, -15, -1, 5, 1, 1, 14, 33, 64, -113, -22, 14, 1, 14, 1, 3, -1, -6, 1, -1, 6, -4, -1, 2, 6, 40, 12, -11, 14, 6, -1, 5, -2, 1, -3, 1, 11, 9, 1, 4, 5, 3, -59, 6, -5, -5, 3, 4, -4, -2, -1, -4, -2, 2, 3, 5, 3, -3, 3, 1, -6, 3, -1, -2, -2, -16, -2, 1, 1, -3, 2, -2, -2, 2, 1, 32, -4, 10, 1, -1, 12, 2, 40, 1]
+ 
 Method used: relax_and_recompute
 Threshold used: 0.75
-Average of percentage of edge crossing reduction: 7.120887207562587
+Average of percentage of edge crossing reduction: 6.1125513014367
+Average of percentage of edge crossing improvement reduction: 24.921352259986715
 Average of edge cross angle reduction: 0.0
 Average of aspect ratio reduction: 0.0
-Average of edge cross reduction: 2.898550724637681
-Better layouts: 60 
-Worse layouts: 39
+Average of edge cross reduction: 3.5441176470588234
+Better layouts: 62 
+Worse layouts: 37
 Same layouts: 37
-Non zero differences: [-1, -2, -12, 11, 26, 1, 4, 19, 1, -2, 2, -11, 3, 5, -29, -2, -5, -4, -4, -20, 9, -5, 4, 1, 1, 26, 36, -17, 46, 35, 5, 4, 1, -7, 3, 4, -4, 4, -1, 2, -3, -3, -1, -2, 5, -4, 61, 2, 38, -6, -3, 2, -6, 32, -1, 16, 3, 1, 38, 2, 75, -5, 14, -1, 1, 1, 13, 1, 1, -55, 2, 3, -8, -1, 4, 2, 2, -1, -6, 25, -2, 1, 5, 2, 2, 50, 2, -1, 19, -61, 8, 4, 6, -1, 9, -2, -1, -6, 1]
-
+Non zero differences: [-2, -17, 22, -1, 26, 1, 7, 19, 1, -4, 2, -11, 4, 5, -33, -1, -5, -4, -7, -20, 6, -5, 6, 1, 1, 24, 35, -17, 41, 35, 15, 5, 1, -7, 4, 4, 2, 4, 2, -3, -3, -1, -2, 5, -4, 72, 2, 31, -10, 6, 2, -6, 32, -1, 16, 3, -1, -1, 35, 2, 100, -5, 10, -1, 1, 1, 13, 1, 1, -55, 2, -2, 2, -1, 4, 2, 2, -1, 2, 27, -3, 1, 28, 2, 2, 54, 2, -1, 24, -61, 8, 4, 6, -1, 9, -2, -1, -6, 1]
+ 
 Method used: relax_and_recompute
 Threshold used: 0.8
-Average of percentage of edge crossing reduction: -1.654031071629967
+Average of percentage of edge crossing reduction: 3.075790451789094
+Average of percentage of edge crossing improvement reduction: 21.928382138040522
 Average of edge cross angle reduction: 0.0
 Average of aspect ratio reduction: 0.0
-Average of edge cross reduction: 4.188405797101449
-Better layouts: 58 
-Worse layouts: 46
+Average of edge cross reduction: 4.463235294117647
+Better layouts: 59 
+Worse layouts: 44
+Same layouts: 33
+Non zero differences: [-1, -4, -1, 1, 11, -1, 116, 3, 1, -6, 14, -1, -1, 3, -1, 3, -8, 75, 3, -2, -11, 94, 2, -2, 10, -1, 19, 27, 4, 34, 41, 17, 1, 15, 1, -3, -1, -8, 2, -2, 22, 4, -1, -2, 2, -1, -2, -3, 1, -64, 2, 20, 2, 1, 1, 1, 1, -19, -2, -3, 6, 1, 2, -1, 30, 1, 85, -5, 3, -1, 5, -1, -3, 11, -2, -12, 4, -15, -3, -1, 6, -1, 2, 10, 6, -37, -2, 1, 114, 1, -11, 38, -48, 15, -2, 3, 2, 1, -1, -1, 1, 1, 2]
+ 
+Method used: relax_and_recompute
+Threshold used: 0.1
+Average of percentage of edge crossing reduction: 11.511526553844133
+Average of percentage of edge crossing improvement reduction: 29.389331787694644
+Average of edge cross angle reduction: 0.0
+Average of aspect ratio reduction: 0.0
+Average of edge cross reduction: 5.235294117647059
+Better layouts: 69 
+Worse layouts: 31
+Same layouts: 36
+Non zero differences: [1, 8, 11, 1, 10, 1, -81, 1, 1, 8, -11, 2, -3, -3, 1, 6, 87, -3, -1, 5, 8, 9, 1, 3, 2, 13, 39, 3, 25, 12, 64, 1, 8, -3, 3, 2, -9, 2, 1, 1, 1, 3, 2, 4, -1, 1, -4, -3, 140, -21, -41, -10, -13, -1, 2, 2, -14, -1, 6, 3, -1, 6, -10, 5, 101, -2, -2, -4, -1, 13, 1, 29, -1, 34, 1, 6, -1, 1, 6, -6, 1, 46, 2, 1, 5, 87, 9, 9, 3, 44, -2, 7, 1, 1, 31, -1, 3, -3, 13, -1]
+ 
+Method used: relax_and_recompute
+Threshold used: 0.15
+Average of percentage of edge crossing reduction: 17.235755576775595
+Average of percentage of edge crossing improvement reduction: 26.32285641625083
+Average of edge cross angle reduction: 0.0
+Average of aspect ratio reduction: 0.0
+Average of edge cross reduction: 3.2058823529411766
+Better layouts: 66 
+Worse layouts: 29
+Same layouts: 41
+Non zero differences: [1, -1, 6, -1, 45, 1, 12, 4, 3, 8, 1, -3, 1, 2, 6, -6, 2, 72, 1, 1, 2, 7, 33, 7, -1, 1, 21, -1, 48, -6, -11, -10, -4, 1, -3, 2, 5, -4, 1, 1, -5, -3, 2, -1, -1, 23, -3, 58, 5, 1, -7, -2, -3, -3, 1, 9, -3, 18, -3, -125, 2, -1, 2, 1, 2, 10, 1, 11, 3, 8, 3, 3, 3, 3, 1, -1, 7, 14, 34, 1, 1, 1, -4, 4, 1, 8, 2, 79, 7, 1, 16, 4, 9, -1, -1]
+ 
+Method used: relax_and_recompute
+Threshold used: 0.2
+Average of percentage of edge crossing reduction: 13.28602988134363
+Average of percentage of edge crossing improvement reduction: 29.163164900238186
+Average of edge cross angle reduction: 0.0
+Average of aspect ratio reduction: 0.0
+Average of edge cross reduction: 4.404411764705882
+Better layouts: 71 
+Worse layouts: 33
 Same layouts: 32
-Non zero differences: [-1, -4, -1, 1, 1, -1, 98, 1, 3, 1, -5, 14, -1, -1, 3, 3, -8, 64, 1, -2, 23, 94, 2, -2, 7, -1, 19, 30, 4, 34, 17, 17, 1, 23, 1, -7, -1, -8, 2, -5, 22, -3, -1, -2, 2, -1, -2, -3, 1, -64, -1, 16, 3, 1, 1, 1, 1, 1, -19, -2, -3, 6, 1, 2, -3, -1, 30, 1, 93, -5, 4, -1, 4, -1, 11, -2, -12, 4, -15, -3, -1, 6, -1, 2, 10, 6, -34, -2, -2, 108, 1, -11, 38, -1, -48, 15, -3, 3, 2, 1, -1, -1, 13, 1]
+Non zero differences: [-1, 6, 2, -1, 5, 2, 19, 5, -1, 2, -1, -7, 1, -2, 1, 4, -10, 6, 4, 44, -2, 1, 17, 66, 4, 1, 16, 146, 1, 67, 30, 7, 4, 7, 2, 7, 1, -2, 1, 4, 7, -3, 3, -2, 1, 59, 24, -1, 7, -7, -2, 3, 1, 1, 12, 1, 2, 8, -1, 1, -5, -4, -7, 1, -1, 2, 3, 1, 2, 6, -2, -3, 3, -3, 3, 1, -3, 1, -4, -1, -1, 1, 1, 1, -9, 1, 1, 67, -1, 2, 2, -65, 1, 13, 1, 4, 33, -20, 7, -3, 1, 4, -1, -1]
+
+Method used: relax_and_recompute
+Threshold used: 0.25
+Average of percentage of edge crossing reduction: 12.244727109334562
+Average of percentage of edge crossing improvement reduction: 28.749942589129535
+Average of edge cross angle reduction: 0.0
+Average of aspect ratio reduction: 0.0
+Average of edge cross reduction: 2.125
+Better layouts: 67 
+Worse layouts: 34
+Same layouts: 35
+Non zero differences: [1, -2, 9, 7, -38, 4, -5, -1, 5, 9, -3, -4, 4, -3, 2, 74, -3, 7, -6, 1, 5, 1, 1, 14, 33, 1, 64, -113, 3, 14, 1, 14, 1, 3, 1, -6, 1, -1, 6, -2, -1, 2, 6, 57, 12, -11, 14, 6, -1, 4, -2, 1, 14, 1, 11, 9, 1, 4, 5, 3, -59, 6, -3, -2, 3, 4, -4, 1, -1, 18, -2, 2, 3, 5, 6, -3, 3, 1, -6, 3, -1, -2, -2, -16, 1, 1, -3, 2, -1, -2, 2, 1, 32, -2, 10, 1, -1, 17, 2, 40, 1]
+ 
+Method used: relax_and_recompute
+Threshold used: 0.3
+Average of percentage of edge crossing reduction: 18.30943182119579
+Average of percentage of edge crossing improvement reduction: 27.42642676562771
+Average of edge cross angle reduction: 0.0
+Average of aspect ratio reduction: 0.0
+Average of edge cross reduction: 5.419117647058823
+Better layouts: 73 
+Worse layouts: 22
+Same layouts: 41
+Non zero differences: [2, -17, 22, -1, 26, 1, 7, 19, 1, -4, 2, -2, 4, 2, 5, -33, -1, -4, 42, 6, 5, 1, 1, 24, 35, 13, 41, 33, 15, 5, 1, -4, 4, 4, 2, 4, 2, 2, 1, -1, 6, 67, 2, 31, -10, 6, 2, 1, 36, 1, 16, 3, -1, -1, 35, 2, 100, 2, 13, -1, 1, 1, 13, 1, 1, -13, 2, 2, 2, -1, 10, 1, 3, -1, -1, 2, 27, -3, 1, 28, 2, 2, 54, 2, 2, 24, -28, 12, 4, 6, -2, 14, -1, -6, 1]
+ 
