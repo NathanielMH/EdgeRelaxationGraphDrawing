@@ -52,7 +52,7 @@ def bfs_on_edges(g: nx.Graph, edge: list or tuple, depth_limit) -> list:
 # Drawing functions 
 #####
 
-def relax_one(graph: nx.Graph, draw_f, model: XGBClassifier, data: pd.DataFrame = None, thresh: float = 0.5) -> dict:
+def relax_one(graph: nx.Graph, draw_f, model: XGBClassifier or CatBoostClassifier, data: pd.DataFrame = None, T: float = 0.5) -> dict:
     """Relax only best edge
     
     Args:
@@ -72,6 +72,10 @@ def relax_one(graph: nx.Graph, draw_f, model: XGBClassifier, data: pd.DataFrame 
     proba = make_predictions(model, X)
 
     max_proba_idx = np.argmax(proba)
+
+    if proba[max_proba_idx] < T:
+        return draw_f(graph)
+
     max_proba_edge = list(graph.edges)[max_proba_idx]
 
     g2 = graph.copy()
@@ -80,15 +84,15 @@ def relax_one(graph: nx.Graph, draw_f, model: XGBClassifier, data: pd.DataFrame 
     pos = draw_f(g2, pos=draw_f(graph))
     return pos
 
-def just_relax(graph: nx.Graph, draw_f, model: XGBClassifier, data: pd.DataFrame = None, thresh: float = 0.5) -> dict:
-    """Relax all edges with prob > thresh
+def just_relax(graph: nx.Graph, draw_f, model: XGBClassifier, data: pd.DataFrame = None, T: float = 0.5) -> dict:
+    """Relax all edges with prob > T
     
     Args:
         graph (nx.Graph): graph to relax
         draw_f (function): function to draw the graph
         model (XGBClassifier): model to use for predictions on which edge to relax
         data (pd.DataFrame): data to use for predictions. If None, it will be computed from the graph
-        thresh (float): threshold to select edges. Default is 0.5.
+        T (float): threshold to select edges. Default is 0.5.
 
     Returns:
         pos (dict): final positions of the nodes
@@ -100,7 +104,7 @@ def just_relax(graph: nx.Graph, draw_f, model: XGBClassifier, data: pd.DataFrame
         X = preprocess_data(data,return_labels=False,drop_labels=True)
     proba = np.array(make_predictions(model, X))
 
-    selected_idxs = np.argwhere(proba>0.5).flatten()
+    selected_idxs = np.argwhere(proba>T).flatten()
     selected_edges = [list(graph.edges)[idx] for idx in selected_idxs]
 
     g2 = graph.copy()
@@ -253,27 +257,28 @@ def eval(model: XGBClassifier, df: pd.DataFrame, graphid2src: dict, method, resu
     average_edge_cross_angle_reduction = 0.
     average_aspect_ratio_reduction = 0.
     average_edge_cross_reduction = 0.
+    average_improvement_reduction = 0.
     better_layouts = 0
     worse_layouts = 0
     same_layouts = 0
     diff = []
 
+    if os.path.exists(results_file):
+        df_results = pd.read_csv(results_file, index_col=0)
+    else:
+        df_results = pd.DataFrame(columns=['method', 'T', 'num_crossings0','num_crossings1','edge_cross_reduction', 'edge_cross_angle_reduction', 'aspect_ratio_reduction', 'num_nodes', 'num_edges'])
+
     # Iterate over all graphs
     id_list = df['graph_id'].unique()
-    for graphid, g in tqdm(graphid2src.items()):
-        # Skip first two graphs
-        if graphid in [13579,13580]:
-            continue
+    for graphid in id_list:
 
-        if graphid not in id_list:
-            continue
-        
+        g = graphid2src[graphid+2]
         # ID_DF = ID_PCKL-2, so we need to subtract 2.
         # This can be seen as the graph 13579 is the first graph in the dataframe,
         # but matches graph 13581 in the graphid2src dictionary.
 
-        print(f"Processing graph {graphid-2}")
-        data = df[df['graph_id'] == graphid-2]
+        print(f"Processing graph {graphid}")
+        data = df[df['graph_id'] == graphid]
 
         # Fill missing values with mean of the column
         data = data.fillna(data.mean(numeric_only=True))
@@ -294,42 +299,11 @@ def eval(model: XGBClassifier, df: pd.DataFrame, graphid2src: dict, method, resu
         num_crossings0, aspect_ratio0, mean_crossing_angle0, _, _, _, _ = quality_measures(g, pos=pos0)
         num_crossings1, aspect_ratio1, mean_crossing_angle1, _, _, _, _ = quality_measures(g, pos=pos1)
 
-        # Compute the comparing metrics
-        if num_crossings0: 
-            average_percentage_edge_cross_reduction += (num_crossings0 - num_crossings1) / num_crossings0
+        # Append results to dataframe
+        df_results = pd.concat([df_results, pd.DataFrame([[method_name, T, num_crossings0, num_crossings1,num_crossings0-num_crossings1, mean_crossing_angle0 - mean_crossing_angle1, aspect_ratio0 - aspect_ratio1, len(g.nodes()), len(g.edges())]], columns=df_results.columns)], ignore_index=True)
 
-        if num_crossings0 != num_crossings1:
-            diff.append(num_crossings0-num_crossings1)
-
-
-        if num_crossings0 > num_crossings1:
-            better_layouts += 1
-        elif num_crossings0 < num_crossings1:
-            worse_layouts += 1
-        else:
-            same_layouts += 1
-
-        # average_edge_cross_angle_reduction += mean_crossing_angle0 - mean_crossing_angle1
-        # average_aspect_ratio_reduction += aspect_ratio0 - aspect_ratio1
-        average_edge_cross_reduction += num_crossings0 - num_crossings1
-
-    # Normalize comparing metrics, should be divided by len(id_list)-2
-    average_percentage_edge_cross_reduction /= (len(id_list)-2)
-    average_percentage_edge_cross_reduction *= 100
-    average_edge_cross_angle_reduction /= (len(id_list)-2)
-    average_aspect_ratio_reduction /= (len(id_list)-2)
-    average_edge_cross_reduction /= (len(id_list)-2)
-
-    # Write results to file
-    with open(results_file, 'a') as f:
-        f.write(f"Method used: {method_name}\n")
-        f.write(f"Threshold used: {T}\n")
-        f.write(f"Average of percentage of edge crossing reduction: {average_percentage_edge_cross_reduction}\n")
-        f.write(f"Average of edge cross angle reduction: {average_edge_cross_angle_reduction}\n")
-        f.write(f"Average of aspect ratio reduction: {average_aspect_ratio_reduction}\n")
-        f.write(f"Average of edge cross reduction: {average_edge_cross_reduction}\n")
-        f.write(f"Better layouts: {better_layouts} \nWorse layouts: {worse_layouts}\nSame layouts: {same_layouts}\n")
-        f.write(f"Non zero differences: {diff}\n")
+        # Save dataframe
+    df_results.to_csv(results_file)
 
 
 def main(alg_name: str = 'kk', classifier: str = 'xgb', T: float = 0.):
@@ -347,14 +321,14 @@ def main(alg_name: str = 'kk', classifier: str = 'xgb', T: float = 0.):
         graphid2src = pickle.load(f)
     
     draw_f = algo_dict[alg_name]
-    filename = '../results/first_analysis_'+alg_name+'_'+classifier+'.txt'
+    filename = '../results/analysis_'+alg_name+'_'+classifier+'.csv'
 
     eval(model, df, graphid2src, relax_and_recompute, filename, draw_f, T=T, k=2)
     # eval(model, df, graphid2src, relax_block, filename, draw_f, depth_limit=2)
-    # eval(model, df, graphid2src, relax_one, filename, draw_f)
-    # eval(model, df, graphid2src, just_relax, filename, draw_f)
+    eval(model, df, graphid2src, relax_one, filename, draw_f, T=T)
+    eval(model, df, graphid2src, just_relax, filename, draw_f, T=T)
 
 if __name__ == '__main__':
-    for t in [0.55,0.6,0.65,0.7,0.75,0.8]:
+    for t in np.arange(0, 1., 0.05):
         main('kk','xgb',t)
         main('fa2','xgb',t)
