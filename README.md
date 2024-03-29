@@ -32,12 +32,6 @@ deactivate
 ## 💡 Idea 
 Look at the effect that relaxing an edge has on graph beauty metrics (number of crossings, average length of edges, ...) in terms of different characteristics of that edge as well as on the perturbation of the drawing/resulting objective function.
 
-## ⏱️ To do
-- Check feature normalization functions
-- Generate data frame with all features (normalized and not normalized) with column for graph type
-- Train Statistical models and trees (bucketizing), also DL both per graph type and in full
-- From last step generate conclusions and write them up
-
 ## 👥 Contributors 
 - Jordi Cortadella
 - Raúl Higueras
